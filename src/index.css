@@ -20,7 +20,23 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 15px;
+  padding: 15px 8px; /* Reduced side padding so the keyboard can stretch further */
+}
+
+/* --- LOGO STYLING --- */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.main-logo {
+  height: 45px; 
+  object-fit: contain;
+  /* This trick magically makes black backgrounds transparent */
+  mix-blend-mode: screen; 
 }
 
 .header {
@@ -156,10 +172,12 @@ body {
   gap: 6px;
 }
 
+/* --- RESPONSIVE KEYBOARD --- */
 .keyboard {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
   padding-bottom: 20px;
 }
 
@@ -167,24 +185,28 @@ body {
   display: flex;
   justify-content: center;
   gap: 6px;
+  width: 100%;
 }
 
 .key {
-  background-color: #818384;
+  background-color: #565758; /* Matching the screenshot dark grey */
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px; /* Native rounded corners */
   height: 58px;
-  min-width: 35px;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.25rem; /* Larger font */
   cursor: pointer;
-  flex: 1;
+  flex: 1; /* Forces edge-to-edge scaling */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  touch-action: manipulation; /* Prevents mobile double-tap zoom */
 }
 
 .key.wide {
-  flex: 1.5;
-  font-size: 0.8rem;
+  flex: 1.5; /* Makes Enter/Delete keys 50% wider */
 }
 
 /* Modal Overlay */

@@ -3,7 +3,6 @@ import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
 // --- THE LEVEL EDITOR (Data-Driven Strategy) ---
-// You can now easily edit your daily words and their specific hints safely right here.
 const dailyChallenge = {
   category: "LIQUID",
   levels: [
@@ -37,7 +36,7 @@ function App() {
 
   // --- CORE GAME STATE ---
   const [currentLevel, setCurrentLevel] = useState(initialState?.currentLevel ?? 0);
-  const targetWord = dailyChallenge.levels[currentLevel].word; // Now points to the new data structure
+  const targetWord = dailyChallenge.levels[currentLevel].word;
   
   const [typedLetters, setTypedLetters] = useState(initialState?.typedLetters ?? Array(targetWord.length).fill(''));
   const [revealedLetters, setRevealedLetters] = useState(initialState?.revealedLetters ?? Array(targetWord.length).fill(''));
@@ -236,7 +235,6 @@ function App() {
       }
 
       if (type === 'hint') {
-        // Now dynamically pulls the precise hint from the data block above
         setHintText(`Hint: ${dailyChallenge.levels[currentLevel].hint}`);
       } 
       else if (type === 'letter') {
@@ -333,12 +331,16 @@ function App() {
       {guessStatus === 'summary' && isPerfectRun && renderConfetti()}
       {showShootingStar && <div className="shooting-star">⭐</div>}
 
+      {/* --- ADDED LOGO --- */}
+      <div className="logo-container">
+        <img src="/logo.png" alt="5 Stars" className="main-logo" />
+      </div>
+
       <header className="header">
         <div className="stars">
           {hasCourtesyStar && (
             <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>
           )}
-          {/* Dynamic pipe logic: Only shows if both types of stars exist */}
           {hasCourtesyStar && bankedStars > 0 && (
             <span style={{ margin: '0 8px', color: '#565758' }}>|</span>
           )}
@@ -359,7 +361,7 @@ function App() {
         </div>
       </header>
 
-<div className="game-area">
+      <div className="game-area">
         {guessStatus !== 'summary' ? (
           <>
             <div className="category-title">DAILY CATEGORY: {dailyChallenge.category}</div>
@@ -433,6 +435,7 @@ function App() {
         </div>
       )}
 
+      {/* --- RESPONSIVE KEYBOARD --- */}
       {guessStatus !== 'summary' && (
         <div className="keyboard">
           <div className="keyboard-row">
@@ -446,11 +449,17 @@ function App() {
             ))}
           </div>
           <div className="keyboard-row">
-            <button className="key wide" onClick={() => handleKeyClick('ENTER')}>ENTER</button>
+            <button className="key wide" onClick={() => handleKeyClick('ENTER')}>
+              {/* SVG Up-Arrow Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
             {['Z','X','C','V','B','N','M'].map(k => (
               <button key={k} className="key" onClick={() => handleKeyClick(k)}>{k}</button>
             ))}
-            <button className="key wide" onClick={() => handleKeyClick('⌫')}>⌫</button>
+            <button className="key wide" onClick={() => handleKeyClick('⌫')}>
+              {/* SVG Backspace Icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM18 9l-6 6M12 9l6 6"/></svg>
+            </button>
           </div>
         </div>
       )}
