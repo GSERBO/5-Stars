@@ -28,15 +28,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  margin-top: 5px;
 }
 
 .main-logo {
-  height: 45px; 
-  object-fit: contain;
-  /* This trick magically makes black backgrounds transparent */
-  mix-blend-mode: screen; 
+  width: 220px; /* Scales by width to ignore the empty vertical space */
+  max-width: 80%; /* Ensures it never overflows on a tiny phone */
+  height: auto;
+  mix-blend-mode: screen; /* Drops the black background seamlessly */
 }
 
 .header {
@@ -176,15 +175,15 @@ body {
 .keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; /* Tighter vertical gap */
   width: 100%;
-  padding-bottom: 20px;
+  padding: 0 4px 10px 4px;
 }
 
 .keyboard-row {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 4px; /* Tighter horizontal gap so the keys have more room to stretch */
   width: 100%;
 }
 
@@ -192,21 +191,22 @@ body {
   background-color: #565758; /* Matching the screenshot dark grey */
   color: white;
   border: none;
-  border-radius: 6px; /* Native rounded corners */
-  height: 58px;
-  font-weight: bold;
-  font-size: 1.25rem; /* Larger font */
+  border-radius: 5px; /* Native rounded corners */
+  height: 46px; /* Native iOS-style height fixes the tall rectangle look */
+  font-weight: 600;
+  font-size: 1.15rem; 
   cursor: pointer;
-  flex: 1; /* Forces edge-to-edge scaling */
+  flex: 1 1 0; /* CRITICAL: Forces perfectly equal width for every letter */
   display: flex;
   justify-content: center;
   align-items: center;
   user-select: none;
   touch-action: manipulation; /* Prevents mobile double-tap zoom */
+  padding: 0;
 }
 
 .key.wide {
-  flex: 1.5; /* Makes Enter/Delete keys 50% wider */
+  flex: 1.5 1 0; /* Makes Enter/Delete keys exactly 1.5x wider */
 }
 
 /* Modal Overlay */
