@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
-// --- THE LEVEL EDITOR (Data-Driven Strategy) ---
-// You can now easily edit your daily words and their specific hints safely right here.
 const dailyChallenge = {
   category: "LIQUID",
   levels: [
@@ -37,7 +35,7 @@ function App() {
 
   // --- CORE GAME STATE ---
   const [currentLevel, setCurrentLevel] = useState(initialState?.currentLevel ?? 0);
-  const targetWord = dailyChallenge.levels[currentLevel].word; // Now points to the new data structure
+  const targetWord = dailyChallenge.levels[currentLevel].word; 
   
   const [typedLetters, setTypedLetters] = useState(initialState?.typedLetters ?? Array(targetWord.length).fill(''));
   const [revealedLetters, setRevealedLetters] = useState(initialState?.revealedLetters ?? Array(targetWord.length).fill(''));
@@ -55,6 +53,7 @@ function App() {
   const [animatingStar, setAnimatingStar] = useState(null); 
   const [showShootingStar, setShowShootingStar] = useState(false);
   
+  const [showMenu, setShowMenu] = useState(false); // NEW MENU STATE
   const [showModal, setShowModal] = useState(false);
   const [hintText, setHintText] = useState('');
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -236,7 +235,6 @@ function App() {
       }
 
       if (type === 'hint') {
-        // Now dynamically pulls the precise hint from the data block above
         setHintText(`Hint: ${dailyChallenge.levels[currentLevel].hint}`);
       } 
       else if (type === 'letter') {
@@ -333,35 +331,61 @@ function App() {
       {guessStatus === 'summary' && isPerfectRun && renderConfetti()}
       {showShootingStar && <div className="shooting-star">⭐</div>}
 
-      {/* --- STEP 1: LOGO --- */}
+      {/* --- ADDED LOGO --- */}
       <div className="logo-container">
         <img src="/logo.png" alt="5 Stars" className="main-logo" />
       </div>
 
+      {/* --- RESTRUCTURED HEADER --- */}
       <header className="header">
-        <div className="stars">
-          {hasCourtesyStar && (
-            <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>
-          )}
-          {hasCourtesyStar && bankedStars > 0 && (
-            <span style={{ margin: '0 8px', color: '#565758' }}>|</span>
-          )}
-          {Array.from({ length: bankedStars }).map((_, i) => (
-            <span key={`banked-${i}`} className="star-icon">⭐</span>
-          ))}
-          {animatingStar === 'banked' && (
-            <span className={`star-icon star-dissolving`}>⭐</span>
-          )}
+        <div className="header-left">
+          <button className="icon-btn" onClick={() => setShowMenu(true)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
         </div>
-        <div className="level-text" style={{display: 'flex', alignItems: 'center'}}>
-          {guessStatus !== 'summary' ? (
-            <><strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Letters</>
-          ) : (
-            <strong>Daily Complete</strong>
-          )}
-          <button className="help-button" onClick={() => setShowHelpModal(true)}>?</button>
+        
+        <div className="header-center">
+          <div className="level-text">
+            {guessStatus !== 'summary' ? (
+              <><strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Ltrs</>
+            ) : (
+              <strong>Daily Complete</strong>
+            )}
+          </div>
+        </div>
+
+        <div className="header-right">
+          <div className="stars">
+            {animatingStar === 'banked' && <span className={`star-icon star-dissolving`}>⭐</span>}
+            {Array.from({ length: bankedStars }).map((_, i) => (
+              <span key={`banked-${i}`} className="star-icon">⭐</span>
+            ))}
+            {hasCourtesyStar && bankedStars > 0 && <span style={{ margin: '0 4px', color: '#565758' }}>|</span>}
+            {hasCourtesyStar && <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>}
+          </div>
         </div>
       </header>
+
+      {/* --- SLIDE-OUT MENU --- */}
+      {showMenu && (
+        <div className="menu-overlay" onClick={() => setShowMenu(false)}>
+          <div className="side-menu" onClick={e => e.stopPropagation()}>
+            <button className="icon-btn menu-close" onClick={() => setShowMenu(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            
+            <button className="menu-item" onClick={() => { setShowMenu(false); /* Stats coming soon */ }}>
+              📊 Statistics
+            </button>
+            <button className="menu-item" onClick={() => { setShowMenu(false); setShowHelpModal(true); }}>
+              📖 How to Play
+            </button>
+            <button className="menu-item" style={{color: '#818384', cursor: 'not-allowed'}}>
+              ⚙️ Settings (Coming Soon)
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="game-area">
         {guessStatus !== 'summary' ? (
@@ -437,7 +461,7 @@ function App() {
         </div>
       )}
 
-      {/* --- STEP 2: RESPONSIVE KEYBOARD & SVGS --- */}
+      {/* --- RESPONSIVE KEYBOARD --- */}
       {guessStatus !== 'summary' && (
         <div className="keyboard">
           <div className="keyboard-row">
