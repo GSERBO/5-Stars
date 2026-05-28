@@ -30,6 +30,24 @@ const getInitialState = () => {
   return null;
 };
 
+const getInitialStats = () => {
+  const statsStr = localStorage.getItem('5StarsStats');
+  if (statsStr) {
+    try {
+      return JSON.parse(statsStr);
+    } catch (e) {
+      console.error("Stats file corrupted, starting fresh.");
+    }
+  }
+  return {
+    gamesPlayed: 0,
+    gamesWon: 0,
+    currentStreak: 0,
+    maxStreak: 0,
+    lastPlayedDate: null
+  };
+};
+
 function App() {
   const [initialState] = useState(getInitialState());
 
@@ -47,13 +65,17 @@ function App() {
   const [hintUsed, setHintUsed] = useState(initialState?.hintUsed ?? false);
   const [runHistory, setRunHistory] = useState(initialState?.runHistory ?? []);
 
+  // --- STATS ENGINE STATE ---
+  const [stats, setStats] = useState(getInitialStats());
+  const [showStatsModal, setShowStatsModal] = useState(false);
+
   // --- UI & ANIMATION STATE ---
   const [isShaking, setIsShaking] = useState(false);
   const [toast, setToast] = useState('');
   const [animatingStar, setAnimatingStar] = useState(null); 
   const [showShootingStar, setShowShootingStar] = useState(false);
   
-  const [showMenu, setShowMenu] = useState(false); // NEW MENU STATE
+  const [showMenu, setShowMenu] = useState(false); 
   const [showModal, setShowModal] = useState(false);
   const [hintText, setHintText] = useState('');
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -82,12 +104,50 @@ function App() {
     localStorage.setItem('5StarsSave', JSON.stringify(saveData));
   }, [currentLevel, typedLetters, revealedLetters, guessStatus, attempts, hasCourtesyStar, bankedStars, hintUsed, runHistory]);
 
+  useEffect(() => {
+    localStorage.setItem('5StarsStats', JSON.stringify(stats));
+  }, [stats]);
+
   const showToastNotification = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(''), 2500);
   };
 
+  const processGameEnd = (isWin) => {
+    setStats(prevStats => {
+      if (prevStats.lastPlayedDate === todayStr) return prevStats;
+
+      const isConsecutiveDay = prevStats.lastPlayedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      let newStreak = prevStats.currentStreak;
+
+      if (isWin) {
+         newStreak = isConsecutiveDay ? prevStats.currentStreak + 1 : 1;
+      } else {
+         newStreak = 0;
+      }
+
+      return {
+        gamesPlayed: prevStats.gamesPlayed + 1,
+        gamesWon: isWin ? prevStats.gamesWon + 1 : prevStats.gamesWon,
+        currentStreak: newStreak,
+        maxStreak: Math.max(newStreak, prevStats.maxStreak),
+        lastPlayedDate: todayStr
+      };
+    });
+    
+    setTimeout(() => {
+        setShowStatsModal(true);
+    }, 2000); 
+  };
+
+
   const handleKeyClick = (key) => {
+    // --- NEW: TACTILE HAPTIC FEEDBACK ---
+    // A crisp, 10ms vibration every time a key is pressed.
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+
     if (guessStatus !== 'typing') return;
 
     if (key === '⌫') {
@@ -119,6 +179,11 @@ function App() {
       
       if (!VALID_WORDS.includes(finalWord)) {
         showToastNotification("Not in word list");
+        // --- NEW: ERROR HAPTIC FEEDBACK ---
+        // A distinct, double rumble if the word isn't in the dictionary
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+           navigator.vibrate([20, 30, 20]); 
+        }
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
         return; 
@@ -149,6 +214,7 @@ function App() {
             setCurrentLevel(currentLevel + 1);
           } else {
             setGuessStatus('summary'); 
+            processGameEnd(true); 
           }
         }, 1500);
         return;
@@ -157,6 +223,7 @@ function App() {
       if (attempts === 0) {
         setGuessStatus('incorrect'); 
         showToastNotification("Last Attempt!");
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         
         setTimeout(() => {
           const nextRevealed = [...revealedLetters];
@@ -178,6 +245,7 @@ function App() {
       } else if (attempts === 1) {
         setGuessStatus('incorrect'); 
         showToastNotification("Level Failed");
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([40, 50, 40]);
         
         setRunHistory(prev => {
           const newHist = [...prev];
@@ -203,6 +271,7 @@ function App() {
             setCurrentLevel(currentLevel + 1);
           } else {
             setGuessStatus('summary'); 
+            processGameEnd(false); 
           }
         }, 5000);
       }
@@ -225,6 +294,9 @@ function App() {
   };
 
   const handleAction = (type) => {
+    // Action haptic response
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
+    
     if (type === 'hint' || type === 'letter') {
       if (hasCourtesyStar) {
         setAnimatingStar('courtesy');
@@ -331,12 +403,10 @@ function App() {
       {guessStatus === 'summary' && isPerfectRun && renderConfetti()}
       {showShootingStar && <div className="shooting-star">⭐</div>}
 
-      {/* --- ADDED LOGO --- */}
       <div className="logo-container">
         <img src="/logo.png" alt="5 Stars" className="main-logo" />
       </div>
 
-      {/* --- RESTRUCTURED HEADER --- */}
       <header className="header">
         <div className="header-left">
           <button className="icon-btn" onClick={() => setShowMenu(true)}>
@@ -366,7 +436,6 @@ function App() {
         </div>
       </header>
 
-      {/* --- SLIDE-OUT MENU --- */}
       {showMenu && (
         <div className="menu-overlay" onClick={() => setShowMenu(false)}>
           <div className="side-menu" onClick={e => e.stopPropagation()}>
@@ -374,7 +443,7 @@ function App() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             
-            <button className="menu-item" onClick={() => { setShowMenu(false); /* Stats coming soon */ }}>
+            <button className="menu-item" onClick={() => { setShowMenu(false); setShowStatsModal(true); }}>
               📊 Statistics
             </button>
             <button className="menu-item" onClick={() => { setShowMenu(false); setShowHelpModal(true); }}>
@@ -385,6 +454,44 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {showStatsModal && (
+         <div className="modal-overlay" onClick={() => setShowStatsModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{width: '300px'}}>
+               <h2 style={{textAlign: 'center', marginBottom: '15px'}}>STATISTICS</h2>
+               <div style={{display: 'flex', justifyContent: 'space-around', marginBottom: '20px', textAlign: 'center'}}>
+                  <div>
+                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.gamesPlayed}</div>
+                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Played</div>
+                  </div>
+                  <div>
+                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>
+                        {stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0}
+                     </div>
+                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Win %</div>
+                  </div>
+                  <div>
+                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.currentStreak}</div>
+                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Current<br/>Streak</div>
+                  </div>
+                  <div>
+                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.maxStreak}</div>
+                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Max<br/>Streak</div>
+                  </div>
+               </div>
+               
+               {guessStatus === 'summary' && (
+                   <button className="share-button" onClick={handleShare} style={{justifyContent: 'center'}}>
+                      Share Results 📋
+                   </button>
+               )}
+
+               <button className="modal-btn" style={{marginTop: '10px'}} onClick={() => setShowStatsModal(false)}>
+                  Close
+               </button>
+            </div>
+         </div>
       )}
 
       <div className="game-area">
@@ -415,9 +522,6 @@ function App() {
                 <div key={i}>Level {i + 1}: {outcome}</div>
               ))}
             </div>
-            <button className="share-button" onClick={handleShare}>
-              Share Results 📋
-            </button>
           </div>
         )}
       </div>
@@ -461,7 +565,6 @@ function App() {
         </div>
       )}
 
-      {/* --- RESPONSIVE KEYBOARD --- */}
       {guessStatus !== 'summary' && (
         <div className="keyboard">
           <div className="keyboard-row">

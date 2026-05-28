@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+/* --- NEW TYPOGRAPHY IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -179,7 +180,9 @@ html, body {
   gap: 10px;
 }
 
+/* --- NEW: MATTE GRID STYLING --- */
 .letter-box {
+  font-family: 'JetBrains Mono', monospace; /* Premium puzzle typography */
   width: 65px;
   height: 65px;
   display: flex;
@@ -192,19 +195,37 @@ html, body {
   transition: all 0.3s ease;
 }
 
-.letter-box.empty { border: 2px solid #3a3a3c; }
-.letter-box.typing { border: 2px solid #565758; color: white; }
-.letter-box.correct {
-  border: 2px solid #538d4e;
-  background-color: rgba(83, 141, 78, 0.15);
-  color: #538d4e;
-  box-shadow: 0 0 15px rgba(83, 141, 78, 0.6), inset 0 0 10px rgba(83, 141, 78, 0.2);
+.letter-box.empty { 
+  border: 2px solid #3a3a3c; 
+  background-color: transparent; 
 }
+
+.letter-box.typing { 
+  border: 2px solid #565758; 
+  background-color: transparent; 
+  color: white; 
+}
+
+/* Matte Flat Colors with subtle depth instead of glows */
+.letter-box.correct {
+  border: 2px solid transparent; /* Keeps sizing consistent */
+  background-color: #538d4e;
+  color: #ffffff;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); /* Scrabble-tile depth */
+}
+
 .letter-box.incorrect {
-  border: 2px solid #dc3545;
-  background-color: rgba(220, 53, 69, 0.15);
-  color: #dc3545;
-  box-shadow: 0 0 15px rgba(220, 53, 69, 0.6), inset 0 0 10px rgba(220, 53, 69, 0.2);
+  border: 2px solid transparent;
+  background-color: #dc3545;
+  color: #ffffff;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
+}
+
+.letter-box.failed-reveal {
+  border: 2px solid transparent;
+  background-color: #eab308;
+  color: #121213; /* Dark text for contrast against yellow */
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
 }
 
 @keyframes wiggle {
@@ -376,13 +397,6 @@ html, body {
   font-weight: 700; font-size: 0.95rem;
   z-index: 5000; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
   letter-spacing: 0.5px; text-transform: uppercase;
-}
-
-.letter-box.failed-reveal {
-  border: 2px solid #eab308;
-  background-color: rgba(234, 179, 8, 0.25);
-  color: #ffffff;
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
 }
 
 .help-modal { width: 320px; }
