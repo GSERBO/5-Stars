@@ -483,7 +483,7 @@ function App() {
         <div className="header-center">
           <div className="level-text">
             {guessStatus !== 'summary' ? (
-              <><strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Ltrs</>
+              <><strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Letters</>
             ) : (
               <strong>Daily Complete</strong>
             )}
