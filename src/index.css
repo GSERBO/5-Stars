@@ -12,19 +12,23 @@ html, body {
   color: #ffffff;
   width: 100%;
   height: 100%;
+  overflow: hidden; /* NEW: Kills the scrollbar */
+  position: fixed; /* NEW: Kills the iOS rubber-band bounce */
+  touch-action: none; /* NEW: Prevents drag-to-scroll entirely */
 }
 
 #root {
   width: 100%;
-  min-height: 100%;
+  height: 100%; /* Changed from min-height */
   display: flex;
   justify-content: center;
+  overflow: hidden;
 }
 
 .game-container {
   width: 100%;
   max-width: 500px;
-  min-height: 100vh;
+  height: 100%; /* Changed from min-height */
   display: flex;
   flex-direction: column;
   padding: 15px 8px; 
