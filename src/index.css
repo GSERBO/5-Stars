@@ -152,15 +152,21 @@ html, body {
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 1.5px;
-  margin-bottom: 8px;
+  margin-bottom: 12px; /* Increased from 8px to lift the text */
   color: #a0a0a0;
   text-transform: uppercase;
+}
+
+/* NEW: The gold category text */
+.category-highlight {
+  color: #d4af37;
+  font-weight: 700;
 }
 
 .word-bank {
   font-size: 0.85rem;
   color: #818384;
-  margin-bottom: 15px;
+  margin-bottom: 25px; /* Increased from 15px to push boxes further down */
   font-weight: bold;
   text-align: center;
 }
@@ -173,12 +179,12 @@ html, body {
   color: #538d4e;
 }
 
-/* Added perspective so the 3D flip doesn't look flat */
 .board {
   display: flex;
   justify-content: center;
   gap: 10px;
   perspective: 1000px; 
+  margin-top: 10px; /* NEW: Actively pushes the grid away from the text */
 }
 
 .letter-box {
@@ -227,7 +233,7 @@ html, body {
   box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
 }
 
-/* --- NEW: THE 3D FLIP ANIMATIONS --- */
+/* --- THE 3D FLIP ANIMATIONS --- */
 .letter-box.correct.flip-animate {
   animation: flipCorrect 0.6s ease both;
 }
@@ -236,7 +242,6 @@ html, body {
   animation: flipIncorrect 0.6s ease both;
 }
 
-/* Swaps the background color exactly at 50% when the tile is completely sideways */
 @keyframes flipCorrect {
   0% { transform: rotateX(0deg); background-color: transparent; border: 2px solid #565758; color: white; box-shadow: none; }
   49% { transform: rotateX(90deg); background-color: transparent; border: 2px solid #565758; color: white; box-shadow: none; }

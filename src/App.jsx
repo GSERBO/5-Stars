@@ -3,7 +3,6 @@ import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
 // --- THE 7-DAY CONTENT ENGINE ---
-// Features a strict 3, 4, 5, 6, 7 letter escalating difficulty curve.
 const WEEKLY_CHALLENGES = [
   { // Day 0: Sunday
     category: "SPACE",
@@ -77,7 +76,6 @@ const WEEKLY_CHALLENGES = [
   }
 ];
 
-// Determine the player's local day of the week (0 = Sun, 1 = Mon... 6 = Sat)
 const todayIndex = new Date().getDay();
 const dailyChallenge = WEEKLY_CHALLENGES[todayIndex];
 
@@ -410,7 +408,6 @@ function App() {
     const starString = Array(bankedStars).fill('⭐').join('');
     const shieldString = hasCourtesyStar ? '🌟 Intact' : '🌟 Lost';
     
-    // --- NEW: DYNAMIC SHARE TEXT ---
     const shareText = `5 Stars | Daily ${dailyChallenge.category} Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\n[Link to your game here]`;
     
     navigator.clipboard.writeText(shareText);
@@ -566,7 +563,10 @@ function App() {
       <div className="game-area">
         {guessStatus !== 'summary' ? (
           <>
-            <div className="category-title">DAILY CATEGORY: {dailyChallenge.category}</div>
+            {/* --- NEW: GOLD CATEGORY HIGHLIGHT --- */}
+            <div className="category-title">
+              DAILY CATEGORY: <span className="category-highlight">{dailyChallenge.category}</span>
+            </div>
             
             {currentLevel > 0 && (
               <div className="word-bank">
