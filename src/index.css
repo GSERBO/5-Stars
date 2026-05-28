@@ -291,6 +291,14 @@ html, body {
   user-select: none;
   touch-action: manipulation; 
   padding: 0;
+  /* NEW: Prepares the key for a smooth, instant physical press */
+  transition: transform 0.05s ease, background-color 0.1s ease;
+}
+
+/* NEW: The physical "press down" effect when your thumb hits the screen */
+.key:active {
+  transform: scale(0.92) translateY(2px);
+  background-color: #818384; 
 }
 
 .key.wide { flex: 1.5 1 0; }
