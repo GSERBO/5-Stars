@@ -51,7 +51,6 @@ const getInitialStats = () => {
 function App() {
   const [initialState] = useState(getInitialState());
 
-  // --- CORE GAME STATE ---
   const [currentLevel, setCurrentLevel] = useState(initialState?.currentLevel ?? 0);
   const targetWord = dailyChallenge.levels[currentLevel].word; 
   
@@ -65,11 +64,9 @@ function App() {
   const [hintUsed, setHintUsed] = useState(initialState?.hintUsed ?? false);
   const [runHistory, setRunHistory] = useState(initialState?.runHistory ?? []);
 
-  // --- STATS ENGINE STATE ---
   const [stats, setStats] = useState(getInitialStats());
   const [showStatsModal, setShowStatsModal] = useState(false);
 
-  // --- UI & ANIMATION STATE ---
   const [isShaking, setIsShaking] = useState(false);
   const [toast, setToast] = useState('');
   const [animatingStar, setAnimatingStar] = useState(null); 
@@ -142,11 +139,7 @@ function App() {
 
 
   const handleKeyClick = (key) => {
-    // --- NEW: TACTILE HAPTIC FEEDBACK ---
-    // A crisp, 10ms vibration every time a key is pressed.
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
 
     if (guessStatus !== 'typing') return;
 
@@ -179,11 +172,7 @@ function App() {
       
       if (!VALID_WORDS.includes(finalWord)) {
         showToastNotification("Not in word list");
-        // --- NEW: ERROR HAPTIC FEEDBACK ---
-        // A distinct, double rumble if the word isn't in the dictionary
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-           navigator.vibrate([20, 30, 20]); 
-        }
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]); 
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
         return; 
@@ -200,6 +189,7 @@ function App() {
           return newHist;
         });
         
+        // Increased to 1800ms to allow the 3D flip animation to finish
         setTimeout(() => {
           setShowShootingStar(false);
           if (currentLevel < 4) {
@@ -216,7 +206,7 @@ function App() {
             setGuessStatus('summary'); 
             processGameEnd(true); 
           }
-        }, 1500);
+        }, 1800);
         return;
       } 
       
@@ -225,6 +215,7 @@ function App() {
         showToastNotification("Last Attempt!");
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         
+        // Increased to 1700ms to allow the 3D flip animation to finish
         setTimeout(() => {
           const nextRevealed = [...revealedLetters];
           const nextTyped = Array(targetWord.length).fill(''); 
@@ -240,7 +231,7 @@ function App() {
           setTypedLetters(nextTyped);
           setAttempts(1);
           setGuessStatus('typing'); 
-        }, 1200);
+        }, 1700);
 
       } else if (attempts === 1) {
         setGuessStatus('incorrect'); 
@@ -253,11 +244,12 @@ function App() {
           return newHist;
         });
 
+        // Increased to 1800ms to allow the 3D flip animation to finish
         setTimeout(() => {
           setGuessStatus('failed-reveal'); 
           setRevealedLetters(targetWord.split(''));
           setTypedLetters(Array(targetWord.length).fill(''));
-        }, 1500);
+        }, 1800);
 
         setTimeout(() => {
           if (currentLevel < 4) {
@@ -294,7 +286,6 @@ function App() {
   };
 
   const handleAction = (type) => {
-    // Action haptic response
     if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
     
     if (type === 'hint' || type === 'letter') {
@@ -360,6 +351,7 @@ function App() {
     showToastNotification("Results & Challenge copied!");
   };
 
+  // --- NEW: THE STAGGERED FLIP MAPPING ---
   const renderBoxes = () => {
     if (guessStatus === 'summary') return null;
 
@@ -376,7 +368,20 @@ function App() {
       if (guessStatus === 'failed-reveal') boxClass = 'failed-reveal'; 
       if ((guessStatus === 'correct' || guessStatus === 'won') && letter) boxClass = 'correct';
 
-      return <div key={i} className={`letter-box ${boxClass}`}>{letter}</div>;
+      // Inject the delay sequentially (0s, 0.15s, 0.3s...)
+      const isAnimating = guessStatus === 'correct' || guessStatus === 'incorrect';
+      const flipClass = isAnimating ? ' flip-animate' : '';
+      const animationDelay = isAnimating ? `${i * 0.15}s` : '0s';
+
+      return (
+        <div 
+           key={i} 
+           className={`letter-box ${boxClass}${flipClass}`}
+           style={{ animationDelay }}
+        >
+           {letter}
+        </div>
+      );
     });
   };
 
