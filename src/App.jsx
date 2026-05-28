@@ -2,16 +2,84 @@ import React, { useState, useEffect } from 'react';
 import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
-const dailyChallenge = {
-  category: "LIQUID",
-  levels: [
-    { word: "WET", hint: "Liquid's primary signature effect." },
-    { word: "RAIN", hint: "Water falling from the clouds." },
-    { word: "FLUID", hint: "A substance that flows freely." },
-    { word: "STREAM", hint: "A continuous flow of liquid." },
-    { word: "CURRENT", hint: "The steady flow of a river." }
-  ]
-};
+// --- THE 7-DAY CONTENT ENGINE ---
+// Features a strict 3, 4, 5, 6, 7 letter escalating difficulty curve.
+const WEEKLY_CHALLENGES = [
+  { // Day 0: Sunday
+    category: "SPACE",
+    levels: [
+      { word: "SUN", hint: "The star at the center of our system." },
+      { word: "STAR", hint: "A luminous point in the night sky." },
+      { word: "ORBIT", hint: "The curved path of a celestial object." },
+      { word: "PLANET", hint: "A large body orbiting a star." },
+      { word: "ECLIPSE", hint: "When one celestial body obscures another." }
+    ]
+  },
+  { // Day 1: Monday
+    category: "LIQUID",
+    levels: [
+      { word: "WET", hint: "Liquid's primary signature effect." },
+      { word: "RAIN", hint: "Water falling from the clouds." },
+      { word: "FLUID", hint: "A substance that flows freely." },
+      { word: "STREAM", hint: "A continuous flow of liquid." },
+      { word: "CURRENT", hint: "The steady flow of a river." }
+    ]
+  },
+  { // Day 2: Tuesday
+    category: "TIME",
+    levels: [
+      { word: "DAY", hint: "Twenty-four hours." },
+      { word: "HOUR", hint: "Sixty minutes." },
+      { word: "CLOCK", hint: "A mechanical device to tell time." },
+      { word: "MINUTE", hint: "Sixty seconds." },
+      { word: "CENTURY", hint: "One hundred years." }
+    ]
+  },
+  { // Day 3: Wednesday
+    category: "NATURE",
+    levels: [
+      { word: "OAK", hint: "A large, sturdy tree." },
+      { word: "LEAF", hint: "The green foliage of a plant." },
+      { word: "GRASS", hint: "Green vegetation that covers lawns." },
+      { word: "FLOWER", hint: "The blooming part of a plant." },
+      { word: "BLOSSOM", hint: "A flower, especially of a fruit tree." }
+    ]
+  },
+  { // Day 4: Thursday
+    category: "LIGHT",
+    levels: [
+      { word: "RAY", hint: "A narrow beam of light." },
+      { word: "GLOW", hint: "A steady radiance." },
+      { word: "FLASH", hint: "A sudden, brief burst of light." },
+      { word: "BRIGHT", hint: "Radiating or reflecting a lot of light." },
+      { word: "RADIANT", hint: "Sending out light; shining or glowing brightly." }
+    ]
+  },
+  { // Day 5: Friday
+    category: "SOUND",
+    levels: [
+      { word: "POP", hint: "A short, sharp, explosive sound." },
+      { word: "ECHO", hint: "A sound or series of sounds caused by reflection." },
+      { word: "NOISE", hint: "A sound, especially one that is loud or unpleasant." },
+      { word: "VOLUME", hint: "The quantity or power of sound; degree of loudness." },
+      { word: "THUNDER", hint: "A loud rumbling or crashing noise heard after a lightning flash." }
+    ]
+  },
+  { // Day 6: Saturday
+    category: "MIND",
+    levels: [
+      { word: "EGO", hint: "A person's sense of self-esteem or self-importance." },
+      { word: "IDEA", hint: "A thought or suggestion as to a possible course of action." },
+      { word: "BRAIN", hint: "An organ of soft nervous tissue contained in the skull." },
+      { word: "MEMORY", hint: "The faculty by which the mind stores and remembers information." },
+      { word: "THOUGHT", hint: "An idea or opinion produced by thinking." }
+    ]
+  }
+];
+
+// Determine the player's local day of the week (0 = Sun, 1 = Mon... 6 = Sat)
+const todayIndex = new Date().getDay();
+const dailyChallenge = WEEKLY_CHALLENGES[todayIndex];
 
 const todayStr = new Date().toISOString().split('T')[0];
 
@@ -189,7 +257,6 @@ function App() {
           return newHist;
         });
         
-        // Increased to 1800ms to allow the 3D flip animation to finish
         setTimeout(() => {
           setShowShootingStar(false);
           if (currentLevel < 4) {
@@ -215,7 +282,6 @@ function App() {
         showToastNotification("Last Attempt!");
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]);
         
-        // Increased to 1700ms to allow the 3D flip animation to finish
         setTimeout(() => {
           const nextRevealed = [...revealedLetters];
           const nextTyped = Array(targetWord.length).fill(''); 
@@ -244,7 +310,6 @@ function App() {
           return newHist;
         });
 
-        // Increased to 1800ms to allow the 3D flip animation to finish
         setTimeout(() => {
           setGuessStatus('failed-reveal'); 
           setRevealedLetters(targetWord.split(''));
@@ -345,13 +410,13 @@ function App() {
     const starString = Array(bankedStars).fill('⭐').join('');
     const shieldString = hasCourtesyStar ? '🌟 Intact' : '🌟 Lost';
     
-    const shareText = `5 Stars | Daily Liquid Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\n[Link to your game here]`;
+    // --- NEW: DYNAMIC SHARE TEXT ---
+    const shareText = `5 Stars | Daily ${dailyChallenge.category} Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\n[Link to your game here]`;
     
     navigator.clipboard.writeText(shareText);
     showToastNotification("Results & Challenge copied!");
   };
 
-  // --- NEW: THE STAGGERED FLIP MAPPING ---
   const renderBoxes = () => {
     if (guessStatus === 'summary') return null;
 
@@ -368,7 +433,6 @@ function App() {
       if (guessStatus === 'failed-reveal') boxClass = 'failed-reveal'; 
       if ((guessStatus === 'correct' || guessStatus === 'won') && letter) boxClass = 'correct';
 
-      // Inject the delay sequentially (0s, 0.15s, 0.3s...)
       const isAnimating = guessStatus === 'correct' || guessStatus === 'incorrect';
       const flipClass = isAnimating ? ' flip-animate' : '';
       const animationDelay = isAnimating ? `${i * 0.15}s` : '0s';
