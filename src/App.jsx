@@ -78,7 +78,6 @@ const WEEKLY_CHALLENGES = [
 
 const todayIndex = new Date().getDay();
 const dailyChallenge = WEEKLY_CHALLENGES[todayIndex];
-
 const todayStr = new Date().toISOString().split('T')[0];
 
 const getInitialState = () => {
@@ -131,14 +130,17 @@ function App() {
   const [runHistory, setRunHistory] = useState(initialState?.runHistory ?? []);
 
   const [stats, setStats] = useState(getInitialStats());
+  
+  // NEW KRYPTEX UI STATES
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showGamesHub, setShowGamesHub] = useState(false);
+  
   const [showStatsModal, setShowStatsModal] = useState(false);
-
   const [isShaking, setIsShaking] = useState(false);
   const [toast, setToast] = useState('');
   const [animatingStar, setAnimatingStar] = useState(null); 
   const [showShootingStar, setShowShootingStar] = useState(false);
   
-  const [showMenu, setShowMenu] = useState(false); 
   const [showModal, setShowModal] = useState(false);
   const [hintText, setHintText] = useState('');
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -408,7 +410,7 @@ function App() {
     const starString = Array(bankedStars).fill('⭐').join('');
     const shieldString = hasCourtesyStar ? '🌟 Intact' : '🌟 Lost';
     
-    const shareText = `5 Stars | Daily ${dailyChallenge.category} Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\n[Link to your game here]`;
+    const shareText = `5 Stars | Daily ${dailyChallenge.category} Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\nhttps://5-stars-phi.vercel.app/`;
     
     navigator.clipboard.writeText(shareText);
     showToastNotification("Results & Challenge copied!");
@@ -469,63 +471,80 @@ function App() {
       {guessStatus === 'summary' && isPerfectRun && renderConfetti()}
       {showShootingStar && <div className="shooting-star">⭐</div>}
 
-      <div className="logo-container">
-        <img src="/logo.png" alt="5 Stars" className="main-logo" />
-      </div>
-
-      <header className="header">
-        <div className="header-left">
-          <button className="icon-btn" onClick={() => setShowMenu(true)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
+      <header className="app-header">
+        <button className="menu-btn" onClick={() => setIsMenuOpen(true)}>☰</button>
+        <div className="logo-container" style={{ margin: 0, padding: 0 }}>
+          <img src="/logo.png" alt="5 Stars" className="main-logo" style={{ width: '120px' }} />
         </div>
-        
-        <div className="header-center">
-          <div className="level-text">
-            {guessStatus !== 'summary' ? (
-              <><strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Letters</>
-            ) : (
-              <strong>Daily Complete</strong>
-            )}
-          </div>
-        </div>
-
-        <div className="header-right">
-          <div className="stars">
-            {animatingStar === 'banked' && <span className={`star-icon star-dissolving`}>⭐</span>}
-            {Array.from({ length: bankedStars }).map((_, i) => (
-              <span key={`banked-${i}`} className="star-icon">⭐</span>
-            ))}
-            {hasCourtesyStar && bankedStars > 0 && <span style={{ margin: '0 4px', color: '#565758' }}>|</span>}
-            {hasCourtesyStar && <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>}
-          </div>
-        </div>
+        <div style={{width: '24px'}}></div>
       </header>
 
-      {showMenu && (
-        <div className="menu-overlay" onClick={() => setShowMenu(false)}>
-          <div className="side-menu" onClick={e => e.stopPropagation()}>
-            <button className="icon-btn menu-close" onClick={() => setShowMenu(false)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+      {/* --- REPLICATED KRYPTEX MENU OVERLAY --- */}
+      <div className={`menu-overlay ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(false)}>
+        <div className="menu-drawer" onClick={(e) => e.stopPropagation()}>
+          <button className="close-btn" onClick={() => setIsMenuOpen(false)}>✕</button>
+          
+          <div className="menu-content">
+            <h2 className="menu-title">STATISTICS</h2>
+            <div className="stats-grid">
+              <div className="stat-box">
+                <span className="stat-num">{stats.gamesPlayed}</span>
+                <span className="stat-label">Played</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-num">{stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0}%</span>
+                <span className="stat-label">Win %</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-num">{stats.currentStreak}</span>
+                <span className="stat-label">Streak</span>
+              </div>
+            </div>
+
+            <nav className="menu-links" style={{ marginTop: '30px' }}>
+              <button className="menu-link-btn" onClick={() => { setShowHelpModal(true); setIsMenuOpen(false); }}>
+                How to Play
+              </button>
+              <button className="menu-link-btn" onClick={() => { setShowGamesHub(true); setIsMenuOpen(false); }}>
+                More Games
+              </button>
+            </nav>
+          </div>
+          <div className="menu-footer">v1.0.0</div>
+        </div>
+      </div>
+
+      {/* --- MORE GAMES HUB MODAL --- */}
+      {showGamesHub && (
+        <div className="modal-overlay" onClick={() => setShowGamesHub(false)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn-abs" onClick={() => setShowGamesHub(false)}>✕</button>
+            <h2 className="modal-title">GAMES HUB</h2>
             
-            <button className="menu-item" onClick={() => { setShowMenu(false); setShowStatsModal(true); }}>
-              📊 Statistics
-            </button>
-            <button className="menu-item" onClick={() => { setShowMenu(false); setShowHelpModal(true); }}>
-              📖 How to Play
-            </button>
-            <button className="menu-item" style={{color: '#818384', cursor: 'not-allowed'}}>
-              ⚙️ Settings (Coming Soon)
-            </button>
+            <a href="https://kryptex-game.vercel.app/" target="_blank" rel="noopener noreferrer" className="hub-btn">
+              KRYPTEX
+              <span className="hub-sub">Play now ↗</span>
+            </a>
+            
+            <a href="#" className="hub-btn current" onClick={(e) => e.preventDefault()}>
+              5 STARS
+              <span className="hub-sub">You are currently playing</span>
+            </a>
+            
+            <a href="#" className="hub-btn disabled" onClick={(e) => e.preventDefault()}>
+              THE NUMBERS GAME
+              <span className="hub-sub">Coming Soon</span>
+            </a>
           </div>
         </div>
       )}
 
+      {/* Legacy Stats Modal (Kept for End-of-Game trigger) */}
       {showStatsModal && (
          <div className="modal-overlay" onClick={() => setShowStatsModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{width: '300px'}}>
-               <h2 style={{textAlign: 'center', marginBottom: '15px'}}>STATISTICS</h2>
+            <div className="modal-panel" onClick={e => e.stopPropagation()}>
+               <button className="close-btn-abs" onClick={() => setShowStatsModal(false)}>✕</button>
+               <h2 className="modal-title">STATISTICS</h2>
                <div style={{display: 'flex', justifyContent: 'space-around', marginBottom: '20px', textAlign: 'center'}}>
                   <div>
                      <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.gamesPlayed}</div>
@@ -539,23 +558,15 @@ function App() {
                   </div>
                   <div>
                      <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.currentStreak}</div>
-                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Current<br/>Streak</div>
-                  </div>
-                  <div>
-                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.maxStreak}</div>
-                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Max<br/>Streak</div>
+                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Streak</div>
                   </div>
                </div>
                
                {guessStatus === 'summary' && (
-                   <button className="share-button" onClick={handleShare} style={{justifyContent: 'center'}}>
+                   <button className="share-button" onClick={handleShare} style={{width: '100%', justifyContent: 'center'}}>
                       Share Results 📋
                    </button>
                )}
-
-               <button className="modal-btn" style={{marginTop: '10px'}} onClick={() => setShowStatsModal(false)}>
-                  Close
-               </button>
             </div>
          </div>
       )}
@@ -563,7 +574,18 @@ function App() {
       <div className="game-area">
         {guessStatus !== 'summary' ? (
           <>
-            {/* --- NEW: GOLD CATEGORY HIGHLIGHT --- */}
+            <div className="level-text" style={{ textAlign: 'center', marginBottom: '15px' }}>
+              <strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Letters
+              <div style={{ marginTop: '10px' }} className="stars">
+                {animatingStar === 'banked' && <span className={`star-icon star-dissolving`}>⭐</span>}
+                {Array.from({ length: bankedStars }).map((_, i) => (
+                  <span key={`banked-${i}`} className="star-icon">⭐</span>
+                ))}
+                {hasCourtesyStar && bankedStars > 0 && <span style={{ margin: '0 4px', color: '#565758' }}>|</span>}
+                {hasCourtesyStar && <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>}
+              </div>
+            </div>
+
             <div className="category-title">
               DAILY CATEGORY: <span className="category-highlight">{dailyChallenge.category}</span>
             </div>
@@ -605,19 +627,21 @@ function App() {
 
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="modal-btn" onClick={() => handleAction('hint')}>Get Hint</button>
-            <button className="modal-btn" onClick={() => handleAction('letter')}>Reveal Letter</button>
-            <button className="modal-btn" style={{background:'#538d4e'}} onClick={() => setShowModal(false)}>Cancel</button>
+          <div className="modal-panel">
+            <button className="close-btn-abs" onClick={() => setShowModal(false)}>✕</button>
+            <h2 className="modal-title">USE A STAR</h2>
+            <button className="hub-btn" onClick={() => handleAction('hint')}>Get a Text Hint</button>
+            <button className="hub-btn" onClick={() => handleAction('letter')}>Reveal One Letter</button>
           </div>
         </div>
       )}
 
       {showHelpModal && (
         <div className="modal-overlay">
-          <div className="modal-content help-modal">
+          <div className="modal-panel help-modal">
+            <button className="close-btn-abs" onClick={() => setShowHelpModal(false)}>✕</button>
+            <h2 className="modal-title">HOW TO PLAY</h2>
             <div className="help-content">
-              <h2>How to Play</h2>
               <ul>
                 <li>Solve the word to advance. Each puzzle connects to the <strong>DAILY CATEGORY</strong> and the previous word.</li>
                 <li>You get <strong>1 Free Guess</strong>. If you miss, you enter the high-stakes <strong>Last Attempt</strong>.</li>
@@ -627,7 +651,7 @@ function App() {
                 <li>Beat all 5 levels without losing a star to achieve a perfect <strong>6-Star Run!</strong></li>
               </ul>
             </div>
-            <button className="modal-btn" style={{background:'#538d4e', marginTop: '10px'}} onClick={() => setShowHelpModal(false)}>
+            <button className="hub-btn current" style={{marginTop: '10px'}} onClick={() => setShowHelpModal(false)}>
               Let's Play
             </button>
           </div>
@@ -648,13 +672,13 @@ function App() {
           </div>
           <div className="keyboard-row">
             <button className="key wide" onClick={() => handleKeyClick('ENTER')}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              ENTER
             </button>
             {['Z','X','C','V','B','N','M'].map(k => (
               <button key={k} className="key" onClick={() => handleKeyClick(k)}>{k}</button>
             ))}
             <button className="key wide" onClick={() => handleKeyClick('⌫')}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM18 9l-6 6M12 9l6 6"/></svg>
+              ⌫
             </button>
           </div>
         </div>

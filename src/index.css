@@ -91,57 +91,245 @@ html, body {
   font-weight: 600;
 }
 
-/* Slide-out Menu Animations */
-@keyframes fadeIn { to { opacity: 1; } }
-@keyframes slideIn { to { transform: translateX(0); } }
+/* --- THE UNIVERSAL MENU ARCHITECTURE (From Kryptex) --- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex: 0 0 auto; 
+  padding: 10px 0;
+  border-bottom: 1px solid #3a3a3c;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  color: #E8E8E4;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+}
 
 .menu-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 3000; 
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 5000;
   opacity: 0;
-  animation: fadeIn 0.2s forwards;
-  backdrop-filter: blur(2px);
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.side-menu {
-  position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 260px;
-  background: #121213;
-  border-right: 1px solid #3a3a3c;
-  transform: translateX(-100%);
-  animation: slideIn 0.25s forwards cubic-bezier(0.4, 0, 0.2, 1);
+.menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu-drawer {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 280px;
+  height: 100%;
+  background-color: #151515;
+  border-right: 1px solid #333333;
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  transition: left 0.3s ease;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.5);
 }
 
-.menu-close {
-  align-self: flex-end;
-  margin-bottom: 30px;
+.menu-overlay.open .menu-drawer {
+  left: 0;
 }
 
-.menu-item {
+.close-btn {
   background: none;
   border: none;
-  color: #d7d7d7;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-align: left;
-  padding: 16px 0;
-  border-bottom: 1px solid #2a2a2c;
+  color: #E8E8E4;
+  font-size: 24px;
   cursor: pointer;
+  align-self: flex-end;
+  padding: 16px;
+}
+
+.menu-content {
+  padding: 0 24px;
+  flex-grow: 1;
+}
+
+.menu-title {
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #333333;
+  padding-bottom: 0.5rem;
+  text-align: center;
+  color: #E8E8E4;
+}
+
+.stats-grid {
   display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+}
+
+.stat-num {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #E8E8E4;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #888888;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.menu-links {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+}
+
+.menu-link-btn {
+  background: none;
+  border: 1px solid #333333;
+  color: #E8E8E4;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.menu-link-btn:active {
+  background-color: #1E1E1E;
+}
+
+.menu-footer {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #555555;
+  border-top: 1px solid #333333;
+}
+
+/* --- THE UNIVERSAL MODAL ARCHITECTURE (From Kryptex) --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 6000;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.modal-panel {
+  background-color: #1E1E1E;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 85%;
+  max-width: 340px;
+  position: relative; 
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  letter-spacing: 0.15em;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid #333333;
+  padding-bottom: 0.5rem;
+  color: #E8E8E4;
+}
+
+.close-btn-abs {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #888888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
   transition: color 0.2s;
 }
 
-.menu-item:hover { color: #ffffff; }
+.close-btn-abs:hover {
+  color: #E8E8E4;
+}
 
-/* --- CORE GAME AREA --- */
+/* --- GAMES HUB MODAL STYLES --- */
+.hub-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 14px;
+  background-color: #1E1E1E;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  color: #E8E8E4;
+  text-decoration: none;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.hub-btn:active {
+  border-color: #F5F5F5;
+  transform: scale(0.98);
+}
+
+.hub-btn.current {
+  border-color: #D4AF37;
+  pointer-events: none;
+}
+
+.hub-btn.disabled {
+  color: #666666;
+  border-style: dashed;
+  pointer-events: none;
+}
+
+.hub-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: #888888;
+  font-weight: normal;
+  margin-top: 6px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* --- CORE GAME AREA (PRESERVED) --- */
 .game-area {
   flex-grow: 1;
   display: flex;
@@ -156,12 +344,11 @@ html, body {
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 1.5px;
-  margin-bottom: 12px; /* Increased from 8px to lift the text */
+  margin-bottom: 12px; 
   color: #a0a0a0;
   text-transform: uppercase;
 }
 
-/* NEW: The gold category text */
 .category-highlight {
   color: #d4af37;
   font-weight: 700;
@@ -170,7 +357,7 @@ html, body {
 .word-bank {
   font-size: 0.85rem;
   color: #818384;
-  margin-bottom: 25px; /* Increased from 15px to push boxes further down */
+  margin-bottom: 25px; 
   font-weight: bold;
   text-align: center;
 }
@@ -188,7 +375,7 @@ html, body {
   justify-content: center;
   gap: 10px;
   perspective: 1000px; 
-  margin-top: 10px; /* NEW: Actively pushes the grid away from the text */
+  margin-top: 10px; 
 }
 
 .letter-box {
@@ -205,46 +392,15 @@ html, body {
   transition: all 0.3s ease;
 }
 
-.letter-box.empty { 
-  border: 2px solid #3a3a3c; 
-  background-color: transparent; 
-}
-
-.letter-box.typing { 
-  border: 2px solid #565758; 
-  background-color: transparent; 
-  color: white; 
-}
-
-.letter-box.correct {
-  border: 2px solid transparent; 
-  background-color: #538d4e;
-  color: #ffffff;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); 
-}
-
-.letter-box.incorrect {
-  border: 2px solid transparent;
-  background-color: #dc3545;
-  color: #ffffff;
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
-}
-
-.letter-box.failed-reveal {
-  border: 2px solid transparent;
-  background-color: #eab308;
-  color: #121213; 
-  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
-}
+.letter-box.empty { border: 2px solid #3a3a3c; background-color: transparent; }
+.letter-box.typing { border: 2px solid #565758; background-color: transparent; color: white; }
+.letter-box.correct { border: 2px solid transparent; background-color: #538d4e; color: #ffffff; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); }
+.letter-box.incorrect { border: 2px solid transparent; background-color: #dc3545; color: #ffffff; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); }
+.letter-box.failed-reveal { border: 2px solid transparent; background-color: #eab308; color: #121213; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15); }
 
 /* --- THE 3D FLIP ANIMATIONS --- */
-.letter-box.correct.flip-animate {
-  animation: flipCorrect 0.6s ease both;
-}
-
-.letter-box.incorrect.flip-animate {
-  animation: flipIncorrect 0.6s ease both;
-}
+.letter-box.correct.flip-animate { animation: flipCorrect 0.6s ease both; }
+.letter-box.incorrect.flip-animate { animation: flipIncorrect 0.6s ease both; }
 
 @keyframes flipCorrect {
   0% { transform: rotateX(0deg); background-color: transparent; border: 2px solid #565758; color: white; box-shadow: none; }
@@ -333,40 +489,6 @@ html, body {
 
 .key.wide { flex: 1.5 1 0; }
 
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 4000;
-}
-
-.modal-content {
-  background: #1e1e1e;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #3a3a3c;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 250px;
-}
-
-.modal-btn {
-  background: #3a3a3c;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.modal-btn:hover { background: #4a4a4c; }
-
 .hint-display {
   margin-top: 20px;
   font-size: 0.9rem;
@@ -428,18 +550,24 @@ html, body {
 .board.shake { animation: rowShake 0.4s ease-in-out; }
 
 .toast {
-  position: fixed;
-  top: 18%; left: 50%; transform: translateX(-50%);
-  background-color: #f8f8f8; color: #121213;
-  padding: 12px 24px; border-radius: 4px;
-  font-weight: 700; font-size: 0.95rem;
-  z-index: 5000; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-  letter-spacing: 0.5px; text-transform: uppercase;
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #E8E8E4;
+  color: #151515;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 5000;
+  white-space: nowrap;
 }
 
 .help-modal { width: 320px; }
 .help-content { text-align: left; color: #d7d7d7; font-size: 0.9rem; line-height: 1.5; }
-.help-content h2 { color: #ffffff; margin-bottom: 15px; text-align: center; font-size: 1.3rem; letter-spacing: 1px; }
 .help-content ul { margin-left: 20px; margin-bottom: 15px; }
 .help-content li { margin-bottom: 10px; }
 .help-content strong { color: #ffffff; font-weight: 700; }
@@ -459,3 +587,13 @@ html, body {
 }
 .share-button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(83, 141, 78, 0.6); }
 .share-button:active { transform: translateY(1px); }
+
+@keyframes popUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(4px); }
+}
