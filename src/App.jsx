@@ -2,213 +2,99 @@ import React, { useState, useEffect } from 'react';
 import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
-// --- THE 7-DAY CONTENT ENGINE ---
-const WEEKLY_CHALLENGES = [
+// --- THE CLOOBLE CONTENT ENGINE ---
+const WEEKLY_CLOOBLES = [
   { // Day 0: Sunday
-    category: "SPACE",
-    levels: [
-      { word: "SUN", hint: "The star at the center of our system." },
-      { word: "STAR", hint: "A luminous point in the night sky." },
-      { word: "ORBIT", hint: "The curved path of a celestial object." },
-      { word: "PLANET", hint: "A large body orbiting a star." },
-      { word: "ECLIPSE", hint: "When one celestial body obscures another." }
-    ]
-  },
-  { // Day 1: Monday
-    category: "LIQUID",
-    levels: [
-      { word: "WET", hint: "Liquid's primary signature effect." },
-      { word: "RAIN", hint: "Water falling from the clouds." },
-      { word: "FLUID", hint: "A substance that flows freely." },
-      { word: "STREAM", hint: "A continuous flow of liquid." },
-      { word: "CURRENT", hint: "The steady flow of a river." }
-    ]
-  },
-  { // Day 2: Tuesday
     category: "TIME",
     levels: [
-      { word: "DAY", hint: "Twenty-four hours." },
-      { word: "HOUR", hint: "Sixty minutes." },
-      { word: "CLOCK", hint: "A mechanical device to tell time." },
-      { word: "MINUTE", hint: "Sixty seconds." },
-      { word: "CENTURY", hint: "One hundred years." }
-    ]
-  },
-  { // Day 3: Wednesday
-    category: "NATURE",
-    levels: [
-      { word: "OAK", hint: "A large, sturdy tree." },
-      { word: "LEAF", hint: "The green foliage of a plant." },
-      { word: "GRASS", hint: "Green vegetation that covers lawns." },
-      { word: "FLOWER", hint: "The blooming part of a plant." },
-      { word: "BLOSSOM", hint: "A flower, especially of a fruit tree." }
-    ]
-  },
-  { // Day 4: Thursday
-    category: "LIGHT",
-    levels: [
-      { word: "RAY", hint: "A narrow beam of light." },
-      { word: "GLOW", hint: "A steady radiance." },
-      { word: "FLASH", hint: "A sudden, brief burst of light." },
-      { word: "BRIGHT", hint: "Radiating or reflecting a lot of light." },
-      { word: "RADIANT", hint: "Sending out light; shining or glowing brightly." }
-    ]
-  },
-  { // Day 5: Friday
-    category: "SOUND",
-    levels: [
-      { word: "POP", hint: "A short, sharp, explosive sound." },
-      { word: "ECHO", hint: "A sound or series of sounds caused by reflection." },
-      { word: "NOISE", hint: "A sound, especially one that is loud or unpleasant." },
-      { word: "VOLUME", hint: "The quantity or power of sound; degree of loudness." },
-      { word: "THUNDER", hint: "A loud rumbling or crashing noise heard after a lightning flash." }
-    ]
-  },
-  { // Day 6: Saturday
-    category: "MIND",
-    levels: [
-      { word: "EGO", hint: "A person's sense of self-esteem or self-importance." },
-      { word: "IDEA", hint: "A thought or suggestion as to a possible course of action." },
-      { word: "BRAIN", hint: "An organ of soft nervous tissue contained in the skull." },
-      { word: "MEMORY", hint: "The faculty by which the mind stores and remembers information." },
-      { word: "THOUGHT", hint: "An idea or opinion produced by thinking." }
+      { 
+        word: "CLOCK", 
+        freeHint: "Often tells you if you’re a punctual person.", 
+        cloos: [
+          "The Sun and Moon comes at a certain point",
+          "Numbers",
+          "Helpful if you’re making plans",
+          "Tik Tok",
+          "Rhymes with 'Block'"
+        ]
+      },
+      { 
+        word: "TIME", 
+        freeHint: "You are now on Level 2. Ready?", 
+        cloos: [
+          "Sometimes called a father",
+          "You make it for the people you care about",
+          "Day and Night",
+          "If you want to know, look at the last answer",
+          "I ain’t got (blank) for that"
+        ]
+      },
+      { 
+        word: "WATCH", 
+        freeHint: "The final level. Don't go broke!", 
+        cloos: [
+          "Has multiple meanings",
+          "Can be iced out, sporty, or classy",
+          "If you can’t find time, you might need to get one",
+          "A Wearable",
+          "Portable clock"
+        ]
+      }
     ]
   }
+  // Add Day 1 to Day 6 here...
 ];
 
+// Fallback to Day 0 if other days aren't built yet
 const todayIndex = new Date().getDay();
-const dailyChallenge = WEEKLY_CHALLENGES[todayIndex];
+const dailyChallenge = WEEKLY_CLOOBLES[todayIndex] || WEEKLY_CLOOBLES[0];
 const todayStr = new Date().toISOString().split('T')[0];
 
-const getInitialState = () => {
-  const savedStr = localStorage.getItem('5StarsSave');
-  if (savedStr) {
-    try {
-      const saved = JSON.parse(savedStr);
-      if (saved.date === todayStr) {
-        return saved;
-      }
-    } catch (e) {
-      console.error("Save file corrupted, starting fresh.");
-    }
-  }
-  return null;
-};
-
-const getInitialStats = () => {
-  const statsStr = localStorage.getItem('5StarsStats');
-  if (statsStr) {
-    try {
-      return JSON.parse(statsStr);
-    } catch (e) {
-      console.error("Stats file corrupted, starting fresh.");
-    }
-  }
-  return {
-    gamesPlayed: 0,
-    gamesWon: 0,
-    currentStreak: 0,
-    maxStreak: 0,
-    lastPlayedDate: null
-  };
-};
+const AFFIRMATIONS = [
+  "You’re a smart cookie! 🍪", 
+  "Look at you!! 👀", 
+  "A genius at work! 🧠", 
+  "Looks good! The word does too! ✨"
+];
 
 function App() {
-  const [initialState] = useState(getInitialState());
-
-  const [currentLevel, setCurrentLevel] = useState(initialState?.currentLevel ?? 0);
+  const [currentLevel, setCurrentLevel] = useState(0);
   const targetWord = dailyChallenge.levels[currentLevel].word; 
   
-  const [typedLetters, setTypedLetters] = useState(initialState?.typedLetters ?? Array(targetWord.length).fill(''));
-  const [revealedLetters, setRevealedLetters] = useState(initialState?.revealedLetters ?? Array(targetWord.length).fill(''));
-  const [guessStatus, setGuessStatus] = useState(initialState?.guessStatus ?? 'typing'); 
-  const [attempts, setAttempts] = useState(initialState?.attempts ?? 0); 
-
-  const [hasCourtesyStar, setHasCourtesyStar] = useState(initialState?.hasCourtesyStar ?? true);
-  const [bankedStars, setBankedStars] = useState(initialState?.bankedStars ?? 0); 
-  const [hintUsed, setHintUsed] = useState(initialState?.hintUsed ?? false);
-  const [runHistory, setRunHistory] = useState(initialState?.runHistory ?? []);
-
-  const [stats, setStats] = useState(getInitialStats());
+  const [typedLetters, setTypedLetters] = useState(Array(targetWord.length).fill(''));
+  const [guessStatus, setGuessStatus] = useState('typing'); 
   
-  // NEW KRYPTEX UI STATES
+  // --- CLOOBLE MECHANICS ---
+  const [clooBank, setClooBank] = useState(5);
+  // -1 = Free Hint. 0-4 = Cloos 1-5.
+  const [currentCloo, setCurrentCloo] = useState(-1); 
+  // Tracks if they solved each level legitimately (before Cloo 5)
+  const [levelScores, setLevelScores] = useState([null, null, null]); 
+  
+  const [affirmation, setAffirmation] = useState("");
+  
+  // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showGamesHub, setShowGamesHub] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   
-  const [showStatsModal, setShowStatsModal] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [toast, setToast] = useState('');
-  const [animatingStar, setAnimatingStar] = useState(null); 
-  const [showShootingStar, setShowShootingStar] = useState(false);
-  
-  const [showModal, setShowModal] = useState(false);
-  const [hintText, setHintText] = useState('');
-  const [showHelpModal, setShowHelpModal] = useState(false);
 
   useEffect(() => {
-    const hasSeenHelp = localStorage.getItem('5StarsHasSeenHelp');
+    const hasSeenHelp = localStorage.getItem('CloobleHasSeenHelp');
     if (!hasSeenHelp) {
       setShowHelpModal(true);
-      localStorage.setItem('5StarsHasSeenHelp', 'true');
+      localStorage.setItem('CloobleHasSeenHelp', 'true');
     }
   }, []);
-
-  useEffect(() => {
-    const saveData = {
-      date: todayStr,
-      currentLevel,
-      typedLetters,
-      revealedLetters,
-      guessStatus,
-      attempts,
-      hasCourtesyStar,
-      bankedStars,
-      hintUsed,
-      runHistory
-    };
-    localStorage.setItem('5StarsSave', JSON.stringify(saveData));
-  }, [currentLevel, typedLetters, revealedLetters, guessStatus, attempts, hasCourtesyStar, bankedStars, hintUsed, runHistory]);
-
-  useEffect(() => {
-    localStorage.setItem('5StarsStats', JSON.stringify(stats));
-  }, [stats]);
 
   const showToastNotification = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(''), 2500);
   };
 
-  const processGameEnd = (isWin) => {
-    setStats(prevStats => {
-      if (prevStats.lastPlayedDate === todayStr) return prevStats;
-
-      const isConsecutiveDay = prevStats.lastPlayedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0];
-      let newStreak = prevStats.currentStreak;
-
-      if (isWin) {
-         newStreak = isConsecutiveDay ? prevStats.currentStreak + 1 : 1;
-      } else {
-         newStreak = 0;
-      }
-
-      return {
-        gamesPlayed: prevStats.gamesPlayed + 1,
-        gamesWon: isWin ? prevStats.gamesWon + 1 : prevStats.gamesWon,
-        currentStreak: newStreak,
-        maxStreak: Math.max(newStreak, prevStats.maxStreak),
-        lastPlayedDate: todayStr
-      };
-    });
-    
-    setTimeout(() => {
-        setShowStatsModal(true);
-    }, 2000); 
-  };
-
-
   const handleKeyClick = (key) => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
-
     if (guessStatus !== 'typing') return;
 
     if (key === '⌫') {
@@ -228,121 +114,81 @@ function App() {
     }
 
     if (key === 'ENTER') {
-      const isBoardFull = targetWord.split('').every((_, i) => revealedLetters[i] !== '' || typedLetters[i] !== '');
-      
+      const isBoardFull = typedLetters.every(letter => letter !== '');
       if (!isBoardFull) {
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
         return;
       }
 
-      const finalWord = targetWord.split('').map((_, i) => revealedLetters[i] || typedLetters[i]).join('');
+      const finalWord = typedLetters.join('');
       
+      // 1. Check for typos/invalid words
       if (!VALID_WORDS.includes(finalWord)) {
-        showToastNotification("Not in word list");
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]); 
+        showToastNotification("Not A Word");
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
         return; 
       }
 
-      if (finalWord === targetWord) {
-        setGuessStatus('correct');
-        setShowShootingStar(true); 
-        
-        const currentOutcome = (attempts === 0 ? '🟩' : '🟨') + (hintUsed ? '⭐' : '');
-        setRunHistory(prev => {
-          const newHist = [...prev];
-          newHist[currentLevel] = currentOutcome;
-          return newHist;
-        });
+      // 2. Check for Incorrect Guess (Valid word, wrong answer)
+      if (finalWord !== targetWord) {
+        setGuessStatus('incorrect');
+        setIsShaking(true);
         
         setTimeout(() => {
-          setShowShootingStar(false);
-          if (currentLevel < 4) {
-            const nextWord = dailyChallenge.levels[currentLevel + 1].word;
-            setBankedStars(prev => prev + 1); 
-            setRevealedLetters(Array(nextWord.length).fill(''));
-            setTypedLetters(Array(nextWord.length).fill(''));
-            setAttempts(0);
-            setHintUsed(false);
-            setHintText('');
-            setGuessStatus('typing');
-            setCurrentLevel(currentLevel + 1);
-          } else {
-            setGuessStatus('summary'); 
-            processGameEnd(true); 
+          setGuessStatus('typing');
+          setIsShaking(false);
+          setTypedLetters(Array(targetWord.length).fill(''));
+          
+          // AUTO-ASSIST PENALTY: If broke, force the next Cloo for free
+          if (clooBank === 0 && currentCloo < 4) {
+             setCurrentCloo(prev => prev + 1);
           }
-        }, 1800);
+        }, 1000);
         return;
       } 
       
-      if (attempts === 0) {
-        setGuessStatus('incorrect'); 
-        showToastNotification("Last Attempt!");
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([20, 30, 20]);
+      // 3. CORRECT GUESS
+      setGuessStatus('correct');
+      const pointEarned = currentCloo < 4; // True if they didn't use Cloo 5
+      
+      setLevelScores(prev => {
+        const newScores = [...prev];
+        newScores[currentLevel] = pointEarned;
+        return newScores;
+      });
+
+      // Show random affirmation
+      setAffirmation(AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)]);
+
+      setTimeout(() => {
+        setAffirmation("");
         
-        setTimeout(() => {
-          const nextRevealed = [...revealedLetters];
-          const nextTyped = Array(targetWord.length).fill(''); 
+        if (currentLevel < 2) {
+          // Move to Next Level
+          const nextWord = dailyChallenge.levels[currentLevel + 1].word;
+          setTypedLetters(Array(nextWord.length).fill(''));
+          setGuessStatus('typing');
+          setCurrentLevel(currentLevel + 1);
           
-          for (let i = 0; i < targetWord.length; i++) {
-            const currentLetter = revealedLetters[i] || typedLetters[i];
-            if (currentLetter === targetWord[i]) {
-              nextRevealed[i] = targetWord[i]; 
-            }
-          }
-          
-          setRevealedLetters(nextRevealed);
-          setTypedLetters(nextTyped);
-          setAttempts(1);
-          setGuessStatus('typing'); 
-        }, 1700);
-
-      } else if (attempts === 1) {
-        setGuessStatus('incorrect'); 
-        showToastNotification("Level Failed");
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([40, 50, 40]);
-        
-        setRunHistory(prev => {
-          const newHist = [...prev];
-          newHist[currentLevel] = '🟥';
-          return newHist;
-        });
-
-        setTimeout(() => {
-          setGuessStatus('failed-reveal'); 
-          setRevealedLetters(targetWord.split(''));
-          setTypedLetters(Array(targetWord.length).fill(''));
-        }, 1800);
-
-        setTimeout(() => {
-          if (currentLevel < 4) {
-            const nextWord = dailyChallenge.levels[currentLevel + 1].word;
-            setRevealedLetters(Array(nextWord.length).fill(''));
-            setTypedLetters(Array(nextWord.length).fill(''));
-            setAttempts(0);
-            setHintUsed(false);
-            setHintText('');
-            setGuessStatus('typing');
-            setCurrentLevel(currentLevel + 1);
+          // If broke entering new level, automatically show Cloo 1 instead of Free Hint
+          if (clooBank === 0) {
+             setCurrentCloo(0);
           } else {
-            setGuessStatus('summary'); 
-            processGameEnd(false); 
+             setCurrentCloo(-1); 
           }
-        }, 5000);
-      }
+        } else {
+          // End Game
+          setGuessStatus('summary'); 
+        }
+      }, 2500); // Wait for affirmation animation
+      
       return;
     }
     
-    let firstEmptyIndex = -1;
-    for (let i = 0; i < targetWord.length; i++) {
-      if (revealedLetters[i] === '' && typedLetters[i] === '') {
-        firstEmptyIndex = i;
-        break;
-      }
-    }
-
+    // Type a letter
+    let firstEmptyIndex = typedLetters.findIndex(l => l === '');
     if (firstEmptyIndex !== -1) {
       const newTyped = [...typedLetters];
       newTyped[firstEmptyIndex] = key;
@@ -350,90 +196,25 @@ function App() {
     }
   };
 
-  const handleAction = (type) => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
-    
-    if (type === 'hint' || type === 'letter') {
-      if (hasCourtesyStar) {
-        setAnimatingStar('courtesy');
-        setTimeout(() => { setHasCourtesyStar(false); setAnimatingStar(null); }, 500); 
-      } else if (bankedStars > 0) {
-        setAnimatingStar('banked');
-        setTimeout(() => { setBankedStars(prev => prev - 1); setAnimatingStar(null); }, 500);
-      }
-
-      if (type === 'hint') {
-        setHintText(`Hint: ${dailyChallenge.levels[currentLevel].hint}`);
-      } 
-      else if (type === 'letter') {
-        const newRevealed = [...revealedLetters];
-        const newTyped = [...typedLetters];
-        let targetIndex = -1;
-
-        for (let i = 0; i < targetWord.length; i++) {
-          if (newRevealed[i] === '' && newTyped[i] !== '' && newTyped[i] !== targetWord[i]) {
-            targetIndex = i;
-            break;
-          }
-        }
-        if (targetIndex === -1) {
-          for (let i = 0; i < targetWord.length; i++) {
-            if (newRevealed[i] === '' && newTyped[i] === '') {
-              targetIndex = i;
-              break;
-            }
-          }
-        }
-        if (targetIndex === -1) {
-          for (let i = 0; i < targetWord.length; i++) {
-            if (newRevealed[i] === '') {
-              targetIndex = i;
-              break;
-            }
-          }
-        }
-
-        if (targetIndex !== -1) {
-          newRevealed[targetIndex] = targetWord[targetIndex];
-          newTyped[targetIndex] = ''; 
-          setRevealedLetters(newRevealed);
-          setTypedLetters(newTyped);
-        }
-      }
-      setHintUsed(true);
+  const handleGetCloo = () => {
+    if (clooBank > 0 && currentCloo < 4) {
+      setClooBank(prev => prev - 1);
+      setCurrentCloo(prev => prev + 1);
     }
-    setShowModal(false);
-  };
-
-  const handleShare = () => {
-    const grid = runHistory.map((outcome, i) => `L${i + 1}: ${outcome}`).join('\n');
-    const starString = Array(bankedStars).fill('⭐').join('');
-    const shieldString = hasCourtesyStar ? '🌟 Intact' : '🌟 Lost';
-    
-    const shareText = `5 Stars | Daily ${dailyChallenge.category} Category\n${grid}\nBank: ${starString || 'None'} | ${shieldString}\n\nCheck out my score in 5-Stars! Can you beat it?\nhttps://5-stars-phi.vercel.app/`;
-    
-    navigator.clipboard.writeText(shareText);
-    showToastNotification("Results & Challenge copied!");
   };
 
   const renderBoxes = () => {
     if (guessStatus === 'summary') return null;
 
     return Array(targetWord.length).fill('').map((_, i) => {
-      const isRevealed = revealedLetters[i] !== '';
-      const isTyped = !isRevealed && typedLetters[i] !== '';
-      const letter = revealedLetters[i] || typedLetters[i] || '';
-      
-      let boxClass = 'empty';
-      if (isRevealed) boxClass = 'correct'; 
-      else if (isTyped) boxClass = 'typing';
+      const letter = typedLetters[i];
+      let boxClass = letter ? 'typing' : 'empty';
 
-      if (guessStatus === 'incorrect' && isTyped) boxClass = 'incorrect';
-      if (guessStatus === 'failed-reveal') boxClass = 'failed-reveal'; 
-      if ((guessStatus === 'correct' || guessStatus === 'won') && letter) boxClass = 'correct';
+      if (guessStatus === 'incorrect' && letter) boxClass = 'incorrect';
+      if (guessStatus === 'correct' && letter) boxClass = 'correct';
 
       const isAnimating = guessStatus === 'correct' || guessStatus === 'incorrect';
-      const flipClass = isAnimating ? ' flip-animate' : '';
+      const flipClass = (guessStatus === 'correct') ? ' flip-animate' : '';
       const animationDelay = isAnimating ? `${i * 0.15}s` : '0s';
 
       return (
@@ -448,59 +229,53 @@ function App() {
     });
   };
 
-  const renderConfetti = () => {
-    const colors = ['#d4af37', '#538d4e', '#ffffff'];
-    return (
-      <div className="confetti-container">
-        {[...Array(40)].map((_, i) => (
-          <div key={i} className="confetti-piece" style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
-            backgroundColor: colors[Math.floor(Math.random() * colors.length)]
-          }}></div>
-        ))}
-      </div>
-    );
-  };
-
-  const isPerfectRun = !runHistory.includes('🟥') && hasCourtesyStar;
+  // End Game Calculation
+  let endRating = "";
+  let endColor = "";
+  if (clooBank === 5) { endRating = "AMAZING!"; endColor = "#D4AF37"; }
+  else if (clooBank >= 3) { endRating = "NICE WORK!"; endColor = "#538D4E"; }
+  else if (clooBank === 2) { endRating = "NOT BAD"; endColor = "#E8E8E4"; }
+  else { endRating = "UM, OK..."; endColor = "#888888"; }
 
   return (
     <div className="game-container">
       {toast && <div className="toast">{toast}</div>}
-      {guessStatus === 'summary' && isPerfectRun && renderConfetti()}
-      {showShootingStar && <div className="shooting-star">⭐</div>}
+      
+      {/* AFFIRMATION POPUP */}
+      {affirmation && (
+         <div className="affirmation-toast">
+            {affirmation}
+         </div>
+      )}
+
+      {/* CONFETTI (Only for Amazing and Nice Work) */}
+      {guessStatus === 'summary' && clooBank >= 3 && (
+        <div className="confetti-container">
+          {[...Array(50)].map((_, i) => (
+            <div key={i} className="confetti-piece" style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+              backgroundColor: ['#D4AF37', '#538D4E', '#FFFFFF'][Math.floor(Math.random() * 3)]
+            }}></div>
+          ))}
+        </div>
+      )}
 
       <header className="app-header">
         <button className="menu-btn" onClick={() => setIsMenuOpen(true)}>☰</button>
-        <div className="logo-container" style={{ margin: 0, padding: 0 }}>
-          <img src="/logo.png" alt="5 Stars" className="main-logo" style={{ width: '120px' }} />
+        <div className="header-center-text">CLOOBLE</div>
+        <div className="cloo-bank-display">
+          Cloos: <span className="cloo-count">{clooBank}</span>
         </div>
-        <div style={{width: '24px'}}></div>
       </header>
 
-      {/* --- REPLICATED KRYPTEX MENU OVERLAY --- */}
+      {/* --- MENU OVERLAY --- */}
       <div className={`menu-overlay ${isMenuOpen ? 'open' : ''}`} onClick={() => setIsMenuOpen(false)}>
         <div className="menu-drawer" onClick={(e) => e.stopPropagation()}>
           <button className="close-btn" onClick={() => setIsMenuOpen(false)}>✕</button>
           
           <div className="menu-content">
-            <h2 className="menu-title">STATISTICS</h2>
-            <div className="stats-grid">
-              <div className="stat-box">
-                <span className="stat-num">{stats.gamesPlayed}</span>
-                <span className="stat-label">Played</span>
-              </div>
-              <div className="stat-box">
-                <span className="stat-num">{stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0}%</span>
-                <span className="stat-label">Win %</span>
-              </div>
-              <div className="stat-box">
-                <span className="stat-num">{stats.currentStreak}</span>
-                <span className="stat-label">Streak</span>
-              </div>
-            </div>
-
+            <h2 className="menu-title">MENU</h2>
             <nav className="menu-links" style={{ marginTop: '30px' }}>
               <button className="menu-link-btn" onClick={() => { setShowHelpModal(true); setIsMenuOpen(false); }}>
                 How to Play
@@ -514,7 +289,7 @@ function App() {
         </div>
       </div>
 
-      {/* --- MORE GAMES HUB MODAL --- */}
+      {/* --- GAMES HUB MODAL --- */}
       {showGamesHub && (
         <div className="modal-overlay" onClick={() => setShowGamesHub(false)}>
           <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
@@ -527,7 +302,7 @@ function App() {
             </a>
             
             <a href="#" className="hub-btn current" onClick={(e) => e.preventDefault()}>
-              5 STARS
+              CLOOBLE
               <span className="hub-sub">You are currently playing</span>
             </a>
             
@@ -539,103 +314,6 @@ function App() {
         </div>
       )}
 
-      {/* Legacy Stats Modal (Kept for End-of-Game trigger) */}
-      {showStatsModal && (
-         <div className="modal-overlay" onClick={() => setShowStatsModal(false)}>
-            <div className="modal-panel" onClick={e => e.stopPropagation()}>
-               <button className="close-btn-abs" onClick={() => setShowStatsModal(false)}>✕</button>
-               <h2 className="modal-title">STATISTICS</h2>
-               <div style={{display: 'flex', justifyContent: 'space-around', marginBottom: '20px', textAlign: 'center'}}>
-                  <div>
-                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.gamesPlayed}</div>
-                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Played</div>
-                  </div>
-                  <div>
-                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>
-                        {stats.gamesPlayed > 0 ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0}
-                     </div>
-                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Win %</div>
-                  </div>
-                  <div>
-                     <div style={{fontSize: '2rem', fontWeight: 'bold'}}>{stats.currentStreak}</div>
-                     <div style={{fontSize: '0.75rem', color: '#818384'}}>Streak</div>
-                  </div>
-               </div>
-               
-               {guessStatus === 'summary' && (
-                   <button className="share-button" onClick={handleShare} style={{width: '100%', justifyContent: 'center'}}>
-                      Share Results 📋
-                   </button>
-               )}
-            </div>
-         </div>
-      )}
-
-      <div className="game-area">
-        {guessStatus !== 'summary' ? (
-          <>
-            <div className="level-text" style={{ textAlign: 'center', marginBottom: '15px' }}>
-              <strong>Level {currentLevel + 1}</strong> &nbsp;• {targetWord.length} Letters
-              <div style={{ marginTop: '10px' }} className="stars">
-                {animatingStar === 'banked' && <span className={`star-icon star-dissolving`}>⭐</span>}
-                {Array.from({ length: bankedStars }).map((_, i) => (
-                  <span key={`banked-${i}`} className="star-icon">⭐</span>
-                ))}
-                {hasCourtesyStar && bankedStars > 0 && <span style={{ margin: '0 4px', color: '#565758' }}>|</span>}
-                {hasCourtesyStar && <span className={`star-icon ${animatingStar === 'courtesy' ? 'star-dissolving' : ''}`}>🌟</span>}
-              </div>
-            </div>
-
-            <div className="category-title">
-              DAILY CATEGORY: <span className="category-highlight">{dailyChallenge.category}</span>
-            </div>
-            
-            {currentLevel > 0 && (
-              <div className="word-bank">
-                {dailyChallenge.levels.slice(0, currentLevel).map((level, i) => (
-                  <span key={i} className="word-bank-item">
-                    L{i + 1}: <span className="word-bank-word">{level.word}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-            
-            <div className={`board ${isShaking ? 'shake' : ''}`}>{renderBoxes()}</div>
-            {hintText && <div className="hint-display">{hintText}</div>}
-          </>
-        ) : (
-          <div className="summary-screen">
-            <h2 style={{color: isPerfectRun ? '#d4af37' : '#ffffff', fontSize: '1.8rem'}}>
-              {isPerfectRun ? '6-Star Run Complete!' : 'Daily Run Finished'}
-            </h2>
-            <div style={{lineHeight: '1.8', fontSize: '1.1rem', textAlign: 'left', marginBottom: '20px'}}>
-              {runHistory.map((outcome, i) => (
-                <div key={i}>Level {i + 1}: {outcome}</div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="action-area">
-        {guessStatus === 'typing' && !hintUsed && (hasCourtesyStar || bankedStars > 0) && (
-          <button className="hint-button" onClick={() => setShowModal(true)}>
-            ⭐ Use Hint
-          </button>
-        )}
-      </div>
-
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-panel">
-            <button className="close-btn-abs" onClick={() => setShowModal(false)}>✕</button>
-            <h2 className="modal-title">USE A STAR</h2>
-            <button className="hub-btn" onClick={() => handleAction('hint')}>Get a Text Hint</button>
-            <button className="hub-btn" onClick={() => handleAction('letter')}>Reveal One Letter</button>
-          </div>
-        </div>
-      )}
-
       {showHelpModal && (
         <div className="modal-overlay">
           <div className="modal-panel help-modal">
@@ -643,12 +321,11 @@ function App() {
             <h2 className="modal-title">HOW TO PLAY</h2>
             <div className="help-content">
               <ul>
-                <li>Solve the word to advance. Each puzzle connects to the <strong>DAILY CATEGORY</strong> and the previous word.</li>
-                <li>You get <strong>1 Free Guess</strong>. If you miss, you enter the high-stakes <strong>Last Attempt</strong>.</li>
-                <li>In your Last Attempt, you must either risk a second blind guess, or <strong>Wager a Star</strong> to reveal a hint.</li>
-                <li><strong>🌟 Courtesy Star:</strong> Your free star. Used first if you ask for help.</li>
-                <li><strong>⭐ Banked Stars:</strong> Earn 1 for every level you beat.</li>
-                <li>Beat all 5 levels without losing a star to achieve a perfect <strong>6-Star Run!</strong></li>
+                <li>Solve 3 connected words based on the <strong>DAILY CATEGORY</strong>.</li>
+                <li>You get a Free Hint to start, and <strong>5 Cloos</strong> in your Cloobank.</li>
+                <li>Stuck? Spend a Cloo from your bank to reveal the next hint.</li>
+                <li><strong>Auto-Assist:</strong> If you run out of Cloos, the game will automatically force clues on you if you guess incorrectly.</li>
+                <li><strong>Scoring:</strong> Cloo 5 is a dead giveaway. You only get credit for a level if you solve it before Cloo 5 is revealed. Win the game by saving your Cloobank!</li>
               </ul>
             </div>
             <button className="hub-btn current" style={{marginTop: '10px'}} onClick={() => setShowHelpModal(false)}>
@@ -657,6 +334,69 @@ function App() {
           </div>
         </div>
       )}
+
+      <div className="game-area">
+        {guessStatus !== 'summary' ? (
+          <>
+            <div className="category-title">
+              DAILY CATEGORY: <span className="category-highlight">{dailyChallenge.category}</span>
+            </div>
+            
+            <div className="level-text" style={{ textAlign: 'center', marginBottom: '25px' }}>
+              <strong>Level {currentLevel + 1} of 3</strong>
+            </div>
+            
+            <div className={`board ${isShaking ? 'shake' : ''}`}>{renderBoxes()}</div>
+            
+            {/* THE CLOO DISPLAY AREA */}
+            <div className="hint-display">
+              <div className="hint-label">
+                {currentCloo === -1 ? "FREE HINT" : `CLOO ${currentCloo + 1}/5`}
+              </div>
+              <div className="hint-text">
+                {currentCloo === -1 
+                  ? dailyChallenge.levels[currentLevel].freeHint 
+                  : dailyChallenge.levels[currentLevel].cloos[currentCloo]}
+              </div>
+            </div>
+
+            <div className="action-area" style={{ marginTop: '20px' }}>
+              {guessStatus === 'typing' && clooBank > 0 && currentCloo < 4 && (
+                <button className="hint-button" onClick={handleGetCloo}>
+                  🔍 Get Cloo
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="summary-screen">
+            <h1 className="summary-rating" style={{ color: endColor }}>{endRating}</h1>
+            
+            <div className="summary-stats-box">
+               <div className="summary-stat-row">
+                 <span>Level 1:</span>
+                 <span>{levelScores[0] ? '✅ Correct' : '❌ Giveaway Used'}</span>
+               </div>
+               <div className="summary-stat-row">
+                 <span>Level 2:</span>
+                 <span>{levelScores[1] ? '✅ Correct' : '❌ Giveaway Used'}</span>
+               </div>
+               <div className="summary-stat-row">
+                 <span>Level 3:</span>
+                 <span>{levelScores[2] ? '✅ Correct' : '❌ Giveaway Used'}</span>
+               </div>
+            </div>
+
+            <div className="summary-bank">
+               Cloos Remaining: <strong>{clooBank}</strong>
+            </div>
+
+            <button className="hub-btn" style={{marginTop: '20px'}} onClick={() => window.location.reload()}>
+              Play Again (Debug)
+            </button>
+          </div>
+        )}
+      </div>
 
       {guessStatus !== 'summary' && (
         <div className="keyboard">
