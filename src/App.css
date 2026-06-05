@@ -49,7 +49,7 @@ html, body {
 }
 
 .header-center-text {
-  font-size: 2.2rem; /* FIX 3: Increased from 1.8rem */
+  font-size: 2.2rem;
   letter-spacing: 0.3em;
   font-weight: 300;
   text-transform: uppercase;
@@ -156,7 +156,6 @@ html, body {
 }
 .close-btn-abs:hover { color: #E8E8E4; }
 
-/* --- STATS GRID --- */
 .stats-grid {
   display: flex;
   justify-content: space-between;
@@ -182,6 +181,7 @@ html, body {
   text-transform: uppercase;
   margin-top: 4px;
 }
+
 .hub-btn {
   display: block; width: 100%; padding: 16px; margin-bottom: 14px;
   background-color: #1E1E1E; border: 1px solid #333333;
@@ -428,7 +428,7 @@ html, body {
 }
 
 @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(4px); } }
+@keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { transform: scale(1); opacity: 1; } }
 
 .help-modal { width: 320px; }
 .help-content { text-align: left; color: #CCCCCC; font-size: 0.9rem; line-height: 1.5; }
