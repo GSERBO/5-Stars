@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './index.css';
 import { VALID_WORDS } from './dictionary'; 
 
-// --- THE CLOOBLE CONTENT ENGINE ---
+// --- CLOOBLE DATA ENGINE ---
 const WEEKLY_CLOOBLES = [
   { // Day 0: Sunday
     category: "TIME",
     levels: [
       { 
         word: "CLOCK", 
-        freeHint: "Often tells you if you’re a punctual person.", 
+        freeHint: "Often tells you if you’re a punctual person.", // Only Level 1 gets a freeHint
         cloos: [
           "The Sun and Moon comes at a certain point",
           "Numbers",
@@ -20,7 +20,7 @@ const WEEKLY_CLOOBLES = [
       },
       { 
         word: "TIME", 
-        freeHint: "You are now on Level 2. Ready?", 
+        // No freeHint here. Will be blank until they click "Get Cloo".
         cloos: [
           "Sometimes called a father",
           "You make it for the people you care about",
@@ -31,7 +31,7 @@ const WEEKLY_CLOOBLES = [
       },
       { 
         word: "WATCH", 
-        freeHint: "The final level. Don't go broke!", 
+        // No freeHint here.
         cloos: [
           "Has multiple meanings",
           "Can be iced out, sporty, or classy",
@@ -45,7 +45,6 @@ const WEEKLY_CLOOBLES = [
   // Add Day 1 to Day 6 here...
 ];
 
-// Fallback to Day 0 if other days aren't built yet
 const todayIndex = new Date().getDay();
 const dailyChallenge = WEEKLY_CLOOBLES[todayIndex] || WEEKLY_CLOOBLES[0];
 const todayStr = new Date().toISOString().split('T')[0];
@@ -57,6 +56,15 @@ const AFFIRMATIONS = [
   "Looks good! The word does too! ✨"
 ];
 
+// --- STATS SYSTEM ---
+const loadStats = () => {
+  const saved = localStorage.getItem('CloobleStats');
+  return saved ? JSON.parse(saved) : { played: 0, perfectRuns: 0, totalCloosSaved: 0 };
+};
+const saveStats = (stats) => {
+  localStorage.setItem('CloobleStats', JSON.stringify(stats));
+};
+
 function App() {
   const [currentLevel, setCurrentLevel] = useState(0);
   const targetWord = dailyChallenge.levels[currentLevel].word; 
@@ -64,19 +72,20 @@ function App() {
   const [typedLetters, setTypedLetters] = useState(Array(targetWord.length).fill(''));
   const [guessStatus, setGuessStatus] = useState('typing'); 
   
-  // --- CLOOBLE MECHANICS ---
   const [clooBank, setClooBank] = useState(5);
-  // -1 = Free Hint. 0-4 = Cloos 1-5.
   const [currentCloo, setCurrentCloo] = useState(-1); 
-  // Tracks if they solved each level legitimately (before Cloo 5)
   const [levelScores, setLevelScores] = useState([null, null, null]); 
   
   const [affirmation, setAffirmation] = useState("");
+  const [hintExpanded, setHintExpanded] = useState(true); // NEW: The +/- Toggle State
+  const [stats, setStats] = useState(loadStats());
   
   // UI States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showGamesHub, setShowGamesHub] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   
   const [isShaking, setIsShaking] = useState(false);
   const [toast, setToast] = useState('');
@@ -123,7 +132,6 @@ function App() {
 
       const finalWord = typedLetters.join('');
       
-      // 1. Check for typos/invalid words
       if (!VALID_WORDS.includes(finalWord)) {
         showToastNotification("Not A Word");
         setIsShaking(true);
@@ -131,7 +139,6 @@ function App() {
         return; 
       }
 
-      // 2. Check for Incorrect Guess (Valid word, wrong answer)
       if (finalWord !== targetWord) {
         setGuessStatus('incorrect');
         setIsShaking(true);
@@ -141,53 +148,56 @@ function App() {
           setIsShaking(false);
           setTypedLetters(Array(targetWord.length).fill(''));
           
-          // AUTO-ASSIST PENALTY: If broke, force the next Cloo for free
           if (clooBank === 0 && currentCloo < 4) {
              setCurrentCloo(prev => prev + 1);
+             setHintExpanded(true); // Auto-expand if the game forces a clue
           }
         }, 1000);
         return;
       } 
       
-      // 3. CORRECT GUESS
       setGuessStatus('correct');
-      const pointEarned = currentCloo < 4; // True if they didn't use Cloo 5
+      const pointEarned = currentCloo < 4; 
       
-      setLevelScores(prev => {
-        const newScores = [...prev];
-        newScores[currentLevel] = pointEarned;
-        return newScores;
-      });
+      const newScores = [...levelScores];
+      newScores[currentLevel] = pointEarned;
+      setLevelScores(newScores);
 
-      // Show random affirmation
       setAffirmation(AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)]);
 
       setTimeout(() => {
         setAffirmation("");
         
         if (currentLevel < 2) {
-          // Move to Next Level
           const nextWord = dailyChallenge.levels[currentLevel + 1].word;
           setTypedLetters(Array(nextWord.length).fill(''));
           setGuessStatus('typing');
           setCurrentLevel(currentLevel + 1);
           
-          // If broke entering new level, automatically show Cloo 1 instead of Free Hint
           if (clooBank === 0) {
              setCurrentCloo(0);
+             setHintExpanded(true);
           } else {
              setCurrentCloo(-1); 
+             setHintExpanded(true);
           }
         } else {
-          // End Game
           setGuessStatus('summary'); 
+          
+          // Process Final Stats
+          const newStats = {
+            played: stats.played + 1,
+            perfectRuns: clooBank === 5 ? stats.perfectRuns + 1 : stats.perfectRuns,
+            totalCloosSaved: stats.totalCloosSaved + clooBank
+          };
+          setStats(newStats);
+          saveStats(newStats);
         }
-      }, 2500); // Wait for affirmation animation
+      }, 2500); 
       
       return;
     }
     
-    // Type a letter
     let firstEmptyIndex = typedLetters.findIndex(l => l === '');
     if (firstEmptyIndex !== -1) {
       const newTyped = [...typedLetters];
@@ -200,6 +210,70 @@ function App() {
     if (clooBank > 0 && currentCloo < 4) {
       setClooBank(prev => prev - 1);
       setCurrentCloo(prev => prev + 1);
+      setHintExpanded(true); 
+    }
+  };
+
+  // --- NEW CANVAS SHARE FOR CLOOBLE ---
+  const handleShare = async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 400;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#151515';
+    ctx.fillRect(0, 0, 600, 400);
+
+    ctx.fillStyle = '#E8E8E4';
+    ctx.font = '300 44px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('C L O O B L E', 300, 75);
+
+    ctx.font = '600 20px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#D4AF37';
+    ctx.fillText(`CATEGORY: ${dailyChallenge.category}`, 300, 115);
+
+    if (guessStatus === 'summary') {
+      let rating = "UM, OK...";
+      let ratingColor = "#888888";
+      if (clooBank === 5) { rating = "AMAZING!"; ratingColor = "#D4AF37"; }
+      else if (clooBank >= 3) { rating = "NICE WORK!"; ratingColor = "#538D4E"; }
+      else if (clooBank === 2) { rating = "NOT BAD"; ratingColor = "#E8E8E4"; }
+
+      ctx.fillStyle = ratingColor;
+      ctx.font = '800 32px sans-serif';
+      ctx.fillText(rating, 300, 170);
+
+      ctx.fillStyle = '#E8E8E4';
+      ctx.font = '400 20px sans-serif';
+      levelScores.forEach((score, index) => {
+        const text = `Level ${index + 1}: ${score ? '✅ Correct' : '❌ Giveaway Used'}`;
+        ctx.fillText(text, 300, 220 + (index * 35));
+      });
+
+      ctx.font = '700 22px sans-serif';
+      ctx.fillStyle = '#D4AF37';
+      ctx.fillText(`Cloos Saved: ${clooBank}/5`, 300, 350);
+    }
+
+    try {
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'clooble-share.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'CLOOBLE',
+            text: guessStatus === 'summary' ? `I saved ${clooBank} Cloos today!` : `Can you beat today's Clooble?`
+          });
+        } else {
+          navigator.clipboard.writeText(`Play CLOOBLE!\nCategory: ${dailyChallenge.category}\nhttps://5-stars-phi.vercel.app/`).then(() => {
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000); 
+          });
+        }
+      }, 'image/png');
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -213,23 +287,17 @@ function App() {
       if (guessStatus === 'incorrect' && letter) boxClass = 'incorrect';
       if (guessStatus === 'correct' && letter) boxClass = 'correct';
 
-      const isAnimating = guessStatus === 'correct' || guessStatus === 'incorrect';
       const flipClass = (guessStatus === 'correct') ? ' flip-animate' : '';
-      const animationDelay = isAnimating ? `${i * 0.15}s` : '0s';
+      const animationDelay = guessStatus === 'correct' ? `${i * 0.15}s` : '0s';
 
       return (
-        <div 
-           key={i} 
-           className={`letter-box ${boxClass}${flipClass}`}
-           style={{ animationDelay }}
-        >
+        <div key={i} className={`letter-box ${boxClass}${flipClass}`} style={{ animationDelay }}>
            {letter}
         </div>
       );
     });
   };
 
-  // End Game Calculation
   let endRating = "";
   let endColor = "";
   if (clooBank === 5) { endRating = "AMAZING!"; endColor = "#D4AF37"; }
@@ -237,18 +305,21 @@ function App() {
   else if (clooBank === 2) { endRating = "NOT BAD"; endColor = "#E8E8E4"; }
   else { endRating = "UM, OK..."; endColor = "#888888"; }
 
+  // Determines what the current hint text is (if any exists)
+  const currentHintText = currentCloo === -1 
+    ? dailyChallenge.levels[currentLevel].freeHint 
+    : dailyChallenge.levels[currentLevel].cloos[currentCloo];
+
   return (
     <div className="game-container">
       {toast && <div className="toast">{toast}</div>}
       
-      {/* AFFIRMATION POPUP */}
       {affirmation && (
          <div className="affirmation-toast">
             {affirmation}
          </div>
       )}
 
-      {/* CONFETTI (Only for Amazing and Nice Work) */}
       {guessStatus === 'summary' && clooBank >= 3 && (
         <div className="confetti-container">
           {[...Array(50)].map((_, i) => (
@@ -277,8 +348,14 @@ function App() {
           <div className="menu-content">
             <h2 className="menu-title">MENU</h2>
             <nav className="menu-links" style={{ marginTop: '30px' }}>
+              <button className="menu-link-btn" onClick={() => { setShowStatsModal(true); setIsMenuOpen(false); }}>
+                Statistics
+              </button>
               <button className="menu-link-btn" onClick={() => { setShowHelpModal(true); setIsMenuOpen(false); }}>
                 How to Play
+              </button>
+              <button className="menu-link-btn" onClick={() => { handleShare(); setIsMenuOpen(false); }}>
+                {isCopied ? "Copied!" : "Share Graphic"}
               </button>
               <button className="menu-link-btn" onClick={() => { setShowGamesHub(true); setIsMenuOpen(false); }}>
                 More Games
@@ -288,6 +365,37 @@ function App() {
           <div className="menu-footer">v1.0.0</div>
         </div>
       </div>
+
+      {/* --- STATS MODAL --- */}
+      {showStatsModal && (
+        <div className="modal-overlay" onClick={() => setShowStatsModal(false)}>
+          <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+            <button className="close-btn-abs" onClick={() => setShowStatsModal(false)}>✕</button>
+            <h2 className="modal-title">STATISTICS</h2>
+            
+            <div className="stats-grid">
+              <div className="stat-box">
+                <span className="stat-num">{stats.played}</span>
+                <span className="stat-label">Played</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-num">{stats.perfectRuns}</span>
+                <span className="stat-label">Perfects</span>
+              </div>
+              <div className="stat-box">
+                <span className="stat-num">
+                  {stats.played > 0 ? Math.round(stats.totalCloosSaved / stats.played) : 0}
+                </span>
+                <span className="stat-label">Avg Saved</span>
+              </div>
+            </div>
+            
+            <button className="hub-btn" onClick={handleShare}>
+              {isCopied ? "SAVED!" : "SHARE GRAPHIC"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* --- GAMES HUB MODAL --- */}
       {showGamesHub && (
@@ -322,13 +430,14 @@ function App() {
             <div className="help-content">
               <ul>
                 <li>Solve 3 connected words based on the <strong>DAILY CATEGORY</strong>.</li>
-                <li>You get a Free Hint to start, and <strong>5 Cloos</strong> in your Cloobank.</li>
+                <li>You get a Free Hint on Level 1, and <strong>5 Cloos</strong> in your Cloobank.</li>
                 <li>Stuck? Spend a Cloo from your bank to reveal the next hint.</li>
                 <li><strong>Auto-Assist:</strong> If you run out of Cloos, the game will automatically force clues on you if you guess incorrectly.</li>
                 <li><strong>Scoring:</strong> Cloo 5 is a dead giveaway. You only get credit for a level if you solve it before Cloo 5 is revealed. Win the game by saving your Cloobank!</li>
               </ul>
             </div>
-            <button className="hub-btn current" style={{marginTop: '10px'}} onClick={() => setShowHelpModal(false)}>
+            {/* FIX 1: Removed the 'current' class so the Let's Play button works! */}
+            <button className="hub-btn" style={{marginTop: '10px'}} onClick={() => setShowHelpModal(false)}>
               Let's Play
             </button>
           </div>
@@ -342,25 +451,31 @@ function App() {
               DAILY CATEGORY: <span className="category-highlight">{dailyChallenge.category}</span>
             </div>
             
-            <div className="level-text" style={{ textAlign: 'center', marginBottom: '25px' }}>
+            <div className="level-text" style={{ textAlign: 'center', margin: '15px 0' }}>
               <strong>Level {currentLevel + 1} of 3</strong>
             </div>
             
             <div className={`board ${isShaking ? 'shake' : ''}`}>{renderBoxes()}</div>
             
-            {/* THE CLOO DISPLAY AREA */}
-            <div className="hint-display">
-              <div className="hint-label">
-                {currentCloo === -1 ? "FREE HINT" : `CLOO ${currentCloo + 1}/5`}
+            {/* FIX 2, 4, 5, 6: The completely overhauled Collapsible Hint UI */}
+            {currentHintText && (
+              <div className="hint-display-container">
+                <div className="hint-toggle-bar" onClick={() => setHintExpanded(!hintExpanded)}>
+                  <span className="hint-label">
+                    {currentCloo === -1 ? "CLOO" : `CLOO ${currentCloo + 1}/5`}
+                  </span>
+                  <span className="hint-icon">{hintExpanded ? "−" : "+"}</span>
+                </div>
+                {hintExpanded && (
+                  <div className="hint-text">
+                    {currentHintText}
+                  </div>
+                )}
               </div>
-              <div className="hint-text">
-                {currentCloo === -1 
-                  ? dailyChallenge.levels[currentLevel].freeHint 
-                  : dailyChallenge.levels[currentLevel].cloos[currentCloo]}
-              </div>
-            </div>
+            )}
 
-            <div className="action-area" style={{ marginTop: '20px' }}>
+            {/* ONLY show the Get Cloo button if they have cloos and aren't at the limit */}
+            <div className="action-area" style={{ marginTop: currentHintText ? '15px' : '30px' }}>
               {guessStatus === 'typing' && clooBank > 0 && currentCloo < 4 && (
                 <button className="hint-button" onClick={handleGetCloo}>
                   🔍 Get Cloo
@@ -391,8 +506,8 @@ function App() {
                Cloos Remaining: <strong>{clooBank}</strong>
             </div>
 
-            <button className="hub-btn" style={{marginTop: '20px'}} onClick={() => window.location.reload()}>
-              Play Again (Debug)
+            <button className="hub-btn" style={{marginTop: '20px'}} onClick={handleShare}>
+              {isCopied ? "SAVED!" : "SHARE GRAPHIC"}
             </button>
           </div>
         )}
